@@ -1,0 +1,3207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>NHÀ THÁM HIỂM – BÍ MẬT BỐN MIỀN KHÍ HẬU</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: rgba(15, 23, 42, 0.88);
+      --gold: #fbbf24;
+      --gold-light: #fde68a;
+      --teal: #14b8a6;
+      --teal-dark: #0f766e;
+      --coral: #f43f5e;
+      --sky: #38bdf8;
+      --green: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #app-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      max-width: 1280px;
+      aspect-ratio: 16 / 9;
+      max-height: calc(100vh - 16px);
+      background: #000;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 3px rgba(255, 255, 255, 0.14);
+    }
+
+    canvas#gameCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ================= HUD ================= */
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      right: 14px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #hud.hidden {
+      display: none !important;
+    }
+
+    .hud-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 2px solid rgba(255, 255, 255, 0.22);
+      padding: 6px 14px;
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+    }
+
+    .hearts-box {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .heart-svg {
+      width: 25px;
+      height: 25px;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    }
+
+    .heart-svg.lost {
+      opacity: 0.25;
+      transform: scale(0.8);
+      filter: grayscale(100%);
+    }
+
+    .heart-svg.bonus {
+      filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.85));
+    }
+
+    .hud-divider {
+      width: 2px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.2);
+      margin: 0 4px;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+    }
+
+    .stat-pill .sub-bonus {
+      font-size: 12px;
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+
+    .item-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 3px 11px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px dashed rgba(255, 255, 255, 0.35);
+      color: #cbd5e1;
+      transition: all 0.3s ease;
+    }
+
+    .item-badge.collected {
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.35), rgba(34, 197, 94, 0.35));
+      border: 1.5px solid #4ade80;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(74, 222, 128, 0.45);
+    }
+
+    .stage-progress {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stage-step {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      border: 1px solid transparent;
+    }
+
+    .stage-step.active {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      border-color: #fde68a;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+    }
+
+    .stage-step.done {
+      background: rgba(34, 197, 94, 0.25);
+      color: #86efac;
+      border-color: rgba(74, 222, 128, 0.5);
+    }
+
+    .hud-icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      background: rgba(15, 23, 42, 0.85);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      transition: transform 0.15s, background 0.2s;
+    }
+
+    .hud-icon-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+      transform: scale(1.07);
+    }
+
+    /* Banner Notification */
+    #toast-banner {
+      position: absolute;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(15, 23, 42, 0.94);
+      border: 2px solid var(--gold);
+      color: #fff;
+      padding: 7px 22px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 15;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      white-space: nowrap;
+    }
+
+    #toast-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ================= OVERLAYS / SCREENS ================= */
+    .overlay-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      padding: 20px;
+      background: rgba(9, 13, 22, 0.76);
+      pointer-events: auto;
+    }
+
+    .overlay-screen.hidden {
+      display: none !important;
+      opacity: 0;
+      pointer-events: none !important;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 680px;
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
+      border: 3px solid rgba(251, 191, 36, 0.65);
+      border-radius: 26px;
+      padding: 28px 32px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      z-index: 31;
+      pointer-events: auto;
+    }
+
+    .game-badge-top {
+      display: inline-block;
+      background: linear-gradient(90deg, #0d9488, #0284c7);
+      color: #e0f2fe;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 5px 16px;
+      border-radius: 999px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .title-main {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 4px 0 #92400e, 0 8px 20px rgba(0,0,0,0.6);
+      letter-spacing: 1px;
+      line-height: 1.15;
+    }
+
+    .title-sub {
+      font-size: clamp(16px, 2.2vw, 22px);
+      font-weight: 800;
+      color: #38bdf8;
+      margin-top: 4px;
+      margin-bottom: 18px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .biome-preview-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 16px 0 22px;
+    }
+
+    .biome-card {
+      padding: 10px 8px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 2px solid rgba(255,255,255,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+    }
+
+    .biome-1 { background: linear-gradient(160deg, #0284c7, #1e3a8a); color: #e0f2fe; }
+    .biome-2 { background: linear-gradient(160deg, #d97706, #78350f); color: #fef3c7; }
+    .biome-3 { background: linear-gradient(160deg, #059669, #064e3b); color: #d1fae5; }
+    .biome-4 { background: linear-gradient(160deg, #ea580c, #7c2d12); color: #ffedd5; }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+      position: relative;
+      z-index: 35;
+    }
+
+    .btn {
+      cursor: pointer;
+      pointer-events: auto;
+      border: none;
+      border-radius: 999px;
+      padding: 13px 28px;
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+    }
+
+    .btn:active {
+      transform: translateY(3px) scale(0.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+      color: #1e1b4b;
+      box-shadow: 0 5px 0 #78350f, 0 10px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.08);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      color: #ffffff;
+      box-shadow: 0 5px 0 #075985, 0 10px 20px rgba(2, 132, 199, 0.35);
+    }
+
+    .btn-secondary:hover {
+      filter: brightness(1.08);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      border: 2px solid rgba(255, 255, 255, 0.32);
+      padding: 11px 20px;
+      font-size: 15px;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .knowledge-box {
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(56, 189, 248, 0.2));
+      border: 2px solid #38bdf8;
+      border-radius: 18px;
+      padding: 18px 22px;
+      margin: 18px 0;
+      font-size: 18px;
+      line-height: 1.5;
+      color: #f8fafc;
+      font-weight: 700;
+      box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.15);
+    }
+
+    .tutorial-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 18px 0;
+      text-align: left;
+    }
+
+    .tut-box {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .tut-box h4 {
+      color: var(--gold);
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .tut-box p {
+      color: #cbd5e1;
+      font-size: 13.5px;
+      line-height: 1.35;
+    }
+
+    .keycap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 32px);
+      gap: 4px;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .keycap {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      background: #334155;
+      border-bottom: 3px solid #0f172a;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .victory-stats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 16px 0;
+    }
+
+    .v-stat-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(251, 191, 36, 0.45);
+      border-radius: 16px;
+      padding: 12px 22px;
+      min-width: 150px;
+    }
+
+    .v-stat-card .val {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--gold);
+    }
+
+    .v-stat-card .lbl {
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    /* ================= MOBILE D-PAD ================= */
+    #touch-controls {
+      position: absolute;
+      bottom: 18px;
+      left: 22px;
+      width: 156px;
+      height: 156px;
+      z-index: 14;
+      display: none;
+      pointer-events: auto;
+    }
+
+    @media (pointer: coarse), (max-width: 920px) {
+      #touch-controls.active-play {
+        display: block;
+      }
+    }
+
+    .dpad-btn {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.78);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      touch-action: none;
+    }
+
+    .dpad-btn.pressed {
+      background: rgba(56, 189, 248, 0.72);
+      border-color: #fff;
+      transform: scale(0.94);
+    }
+
+    .dpad-up { top: 0; left: 52px; }
+    .dpad-down { bottom: 0; left: 52px; }
+    .dpad-left { top: 52px; left: 0; }
+    .dpad-right { top: 52px; right: 0; }
+
+    @media (max-width: 720px) {
+      .stage-step span.stage-name { display: none; }
+      .tutorial-grid { grid-template-columns: 1fr; }
+      .biome-preview-strip { grid-template-columns: repeat(2, 1fr); }
+      .modal-card { padding: 18px 16px; }
+      #hud { height: 44px; top: 6px; }
+      .hud-group { padding: 4px 10px; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-wrapper">
+  <div id="game-container">
+    <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+    <!-- TOP HUD -->
+    <div id="hud" class="hidden">
+      <!-- Left: Hearts, Diamonds, Climate Item -->
+      <div class="hud-group">
+        <div class="hearts-box" id="hud-hearts" title="Trái tim năng lượng (Nhặt Tim hoặc Kho máu phụ để hồi phục)"></div>
+        <div class="hud-divider"></div>
+        <div class="stat-pill" title="Thu thập tối thiểu 2 Kim cương để mở cổng">
+          <svg width="22" height="22" viewBox="0 0 24 24">
+            <polygon points="12,2 22,9 12,22 2,9" fill="#38bdf8" stroke="#e0f2fe" stroke-width="1.5"/>
+            <polygon points="12,2 17,9 12,22 7,9" fill="#7dd3fc" opacity="0.7"/>
+          </svg>
+          <span id="hud-diamonds">0/2</span>
+          <span class="sub-bonus" id="hud-bonus-diamonds"></span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="item-badge" id="hud-item-badge">
+          <span id="hud-item-icon"></span>
+          <span id="hud-item-text">Chưa có trang bị</span>
+        </div>
+      </div>
+
+      <!-- Center: 4 Stages Progress -->
+      <div class="hud-group stage-progress" id="hud-stages">
+        <div class="stage-step active" data-st="0">1. <span class="stage-name">Băng Tuyết</span></div>
+        <div class="stage-step" data-st="1">2. <span class="stage-name">Rừng Thu</span></div>
+        <div class="stage-step" data-st="2">3. <span class="stage-name">Nhiệt Đới</span></div>
+        <div class="stage-step" data-st="3">4. <span class="stage-name">Hoang Mạc</span></div>
+      </div>
+
+      <!-- Right: Sound & Pause -->
+      <div class="hud-group" style="padding: 4px 8px; gap: 6px;">
+        <button type="button" class="hud-icon-btn" id="btn-hud-sound" title="Bật/Tắt Âm thanh" aria-label="Âm thanh">
+          <svg id="svg-sound-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+        </button>
+        <button type="button" class="hud-icon-btn" id="btn-hud-pause" title="Tạm dừng (Esc)" aria-label="Tạm dừng">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16" rx="1"/>
+            <rect x="14" y="4" width="4" height="16" rx="1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- TOAST BANNER -->
+    <div id="toast-banner">Cổng đã mở! Hãy di chuyển tới cánh cổng!</div>
+
+    <!-- TOUCH D-PAD FOR MOBILE / TABLET -->
+    <div id="touch-controls">
+      <div class="dpad-btn dpad-up" data-dir="up">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5l-8 9h16z"/></svg>
+      </div>
+      <div class="dpad-btn dpad-down" data-dir="down">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 19l-8-9h16z"/></svg>
+      </div>
+      <div class="dpad-btn dpad-left" data-dir="left">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12l9-8v16z"/></svg>
+      </div>
+      <div class="dpad-btn dpad-right" data-dir="right">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 12l-9-8v16z"/></svg>
+      </div>
+    </div>
+
+    <!-- 1. MENU SCREEN -->
+    <div class="overlay-screen" id="screen-menu">
+      <div class="modal-card">
+        <div class="game-badge-top">Tự nhiên & Xã hội Lớp 3 • Bài 27: Trái Đất và các đới khí hậu</div>
+        <h1 class="title-main">NHÀ THÁM HIỂM</h1>
+        <h2 class="title-sub">BÍ MẬT BỐN MIỀN KHÍ HẬU</h2>
+
+        <div class="biome-preview-strip">
+          <div class="biome-card biome-1">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+              <polygon points="16,3 6,17 12,17 8,26 24,26 20,17 26,17" fill="#e0f2fe"/>
+              <rect x="14" y="26" width="4" height="4" fill="#78350f"/>
+            </svg>
+            <span>1. Miền Băng Tuyết</span>
+          </div>
+          <div class="biome-card biome-2">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+              <circle cx="16" cy="14" r="10" fill="#f59e0b"/>
+              <circle cx="12" cy="12" r="6" fill="#fbbf24"/>
+              <rect x="14" y="22" width="4" height="7" fill="#78350f"/>
+            </svg>
+            <span>2. Rừng Mùa Thu</span>
+          </div>
+          <div class="biome-card biome-3">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+              <ellipse cx="16" cy="13" rx="12" ry="9" fill="#10b981"/>
+              <ellipse cx="11" cy="11" rx="7" ry="5" fill="#34d399"/>
+              <rect x="14" y="21" width="4" height="8" fill="#57534e"/>
+            </svg>
+            <span>3. Rừng Nhiệt Đới</span>
+          </div>
+          <div class="biome-card biome-4">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+              <rect x="13" y="6" width="6" height="22" rx="3" fill="#22c55e"/>
+              <path d="M13 16 H8 V10 A2 2 0 0 1 12 10 V13" fill="#22c55e"/>
+              <path d="M19 14 H24 V9 A2 2 0 0 0 20 9 V12" fill="#22c55e"/>
+            </svg>
+            <span>4. Vượt Hoang Mạc</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-start-game">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+            BẮT ĐẦU KHÁM PHÁ
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-open-tutorial">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            HƯỚNG DẪN
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-menu-sound">ÂM THANH: BẬT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. TUTORIAL SCREEN -->
+    <div class="overlay-screen hidden" id="screen-tutorial">
+      <div class="modal-card">
+        <div class="game-badge-top">Cẩm nang nhà thám hiểm nhí</div>
+        <h2 class="title-main" style="font-size: 30px;">HƯỚNG DẪN CHƠI</h2>
+        <p style="color: #e2e8f0; font-size: 17px; font-weight: 700; margin-top: 8px;">
+          "Di chuyển theo các con đường ngang dọc! Nhặt 2 kim cương và vật phẩm phù hợp, sau đó đến cánh cổng."
+        </p>
+
+        <div class="tutorial-grid">
+          <div class="tut-box">
+            <div class="keycap-grid">
+              <div></div><div class="keycap">W</div><div></div>
+              <div class="keycap">A</div><div class="keycap">S</div><div class="keycap">D</div>
+            </div>
+            <div>
+              <h4>1. Đi theo đường mòn ngang dọc</h4>
+              <p>Dùng phím <b>W, A, S, D</b> hoặc <b>Phím Mũi Tên</b> để đi dọc theo các lối đi trong mê cung.</p>
+            </div>
+          </div>
+
+          <div class="tut-box">
+            <svg width="46" height="46" viewBox="0 0 40 40" style="flex-shrink:0;">
+              <polygon points="20,4 36,15 20,36 4,15" fill="#38bdf8" stroke="#fff" stroke-width="2"/>
+            </svg>
+            <div>
+              <h4>2. Thu thập Kim cương</h4>
+              <p>Mỗi chặng có 4 viên kim cương. Em chỉ cần nhặt <b>ít nhất 2 viên</b> để đủ điều kiện mở cổng.</p>
+            </div>
+          </div>
+
+          <div class="tut-box">
+            <svg width="46" height="46" viewBox="0 0 40 40" style="flex-shrink:0;">
+              <circle cx="20" cy="20" r="17" fill="#0d9488" stroke="#5eead4" stroke-width="2"/>
+              <path d="M13 14 L20 11 L27 14 L29 22 L24 23 L24 30 L16 30 L16 23 L11 22 Z" fill="#fff"/>
+            </svg>
+            <div>
+              <h4>3. Vật phẩm thích nghi khí hậu</h4>
+              <p>Tìm <b>Áo ấm, Áo khoác nhẹ, Áo mưa, Bình nước</b> để thích nghi thời tiết từng miền.</p>
+            </div>
+          </div>
+
+          <div class="tut-box">
+            <svg width="46" height="46" viewBox="0 0 40 40" style="flex-shrink:0;">
+              <rect x="6" y="12" width="28" height="20" rx="4" fill="#e11d48" stroke="#fde047" stroke-width="2"/>
+              <path d="M20 16 V28 M14 22 H26" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+            <div>
+              <h4>4. Kho máu phụ & Trái tim hồi mạng</h4>
+              <p>Nhặt <b>Kho máu phụ</b> hoặc <b>Trái tim</b> trên đường để hồi phục lại <b>+1 mạng</b> khi bị mất tim!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-tutorial-play">VÀO CHƠI NGAY!</button>
+          <button type="button" class="btn btn-outline" id="btn-tutorial-back">QUAY LẠI MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. PAUSE SCREEN -->
+    <div class="overlay-screen hidden" id="screen-pause">
+      <div class="modal-card" style="max-width: 460px;">
+        <h2 class="title-main" style="font-size: 32px;">TẠM DỪNG</h2>
+        <p style="color:#cbd5e1; margin: 10px 0 20px;">Cuộc phiêu lưu đang tạm nghỉ.</p>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-resume">TIẾP TỤC CHƠI</button>
+          <button type="button" class="btn btn-secondary" id="btn-pause-restart">CHƠI LẠI CHẶNG NÀY</button>
+          <button type="button" class="btn btn-outline" id="btn-pause-menu">VỀ MÀN HÌNH CHÍNH</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. LEVEL COMPLETE SCREEN -->
+    <div class="overlay-screen hidden" id="screen-level-complete">
+      <div class="modal-card">
+        <div class="game-badge-top" id="lc-stage-badge">HOÀN THÀNH CHẶNG 1/4</div>
+        <h2 class="title-main" id="lc-title" style="font-size: 34px;">XUẤT SẮC!</h2>
+        <p style="color: #fde68a; font-weight: 800; margin-top: 6px;" id="lc-stats">
+          Kim cương thu thập: 3/4 • Đã trang bị: Áo khoác giữ ấm
+        </p>
+
+        <div class="knowledge-box" id="lc-knowledge">
+          "Ở vùng lạnh, chúng ta cần mặc trang phục giữ ấm để bảo vệ cơ thể."
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-next-stage">
+            TIẾP TỤC HÀNH TRÌNH
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. GAME OVER (RETRY STAGE) SCREEN -->
+    <div class="overlay-screen hidden" id="screen-gameover">
+      <div class="modal-card" style="max-width: 520px; border-color: #f43f5e;">
+        <div class="game-badge-top" style="background: #e11d48;">CẦN CẨN THẬN HƠN!</div>
+        <h2 class="title-main" style="color: #fda4af; font-size: 32px;">HẾT TIM RỒI!</h2>
+        <p style="color: #e2e8f0; margin: 14px 0 22px; font-size: 16px; line-height: 1.5;">
+          Đừng lo nhé! Em hãy thu thập các <b>Trái tim hồi phục</b> và <b>Kho máu phụ</b> trên đường để có thêm mạng vượt qua chặng này nhé!
+        </p>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-retry-stage">THỬ LẠI CHẶNG NÀY</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. VICTORY SCREEN -->
+    <div class="overlay-screen hidden" id="screen-victory">
+      <div class="modal-card">
+        <div class="game-badge-top">HOÀN THÀNH XUẤT SẮC BÀI 27</div>
+        <h1 class="title-main" style="font-size: 36px;">CHÚC MỪNG NHÀ THÁM HIỂM!</h1>
+        <p style="color: #38bdf8; font-weight: 800; font-size: 17px; margin-top: 4px;">
+          Em đã chinh phục cả 4 miền khí hậu và mở Cổng Kho Báu thành công!
+        </p>
+
+        <div style="margin: 14px auto 6px;">
+          <svg width="96" height="96" viewBox="0 0 100 100">
+            <polygon points="35,55 22,95 38,86 48,96 48,55" fill="#ef4444"/>
+            <polygon points="65,55 78,95 62,86 52,96 52,55" fill="#dc2626"/>
+            <circle cx="50" cy="42" r="32" fill="#fbbf24" stroke="#fef08a" stroke-width="4"/>
+            <circle cx="50" cy="42" r="24" fill="#d97706"/>
+            <polygon points="50,21 56,34 70,36 60,46 62,60 50,53 38,60 40,46 30,36 44,34" fill="#fef08a"/>
+          </svg>
+        </div>
+
+        <div class="victory-stats">
+          <div class="v-stat-card">
+            <div class="val" id="vic-diamonds">12 / 16</div>
+            <div class="lbl">Tổng Kim Cương</div>
+          </div>
+          <div class="v-stat-card">
+            <div class="val" id="vic-chests">4 / 4</div>
+            <div class="lbl">Kho Máu Phụ</div>
+          </div>
+          <div class="v-stat-card">
+            <div class="val">4 / 4</div>
+            <div class="lbl">Vật Phẩm Khí Hậu</div>
+          </div>
+        </div>
+
+        <div class="knowledge-box" style="font-size: 15.5px; padding: 12px 18px; margin: 12px 0;">
+          <b>Ghi nhớ:</b> Mỗi đới khí hậu (Hàn đới lạnh giá, Ôn đới bốn mùa, Nhiệt đới mưa ẩm hay Hoang mạc khô nóng) đều có đặc điểm thiên nhiên riêng. Chuẩn bị trang phục và vật dụng phù hợp giúp chúng ta luôn khỏe mạnh và an toàn!
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-play-again">CHƠI LẠI TỪ ĐẦU</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Polyfill an toàn cho ctx.roundRect
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    const radius = typeof r === 'number' ? r : (Array.isArray(r) ? r[0] : 6);
+    const rr = Math.min(radius, w / 2, h / 2);
+    this.moveTo(x + rr, y);
+    this.arcTo(x + w, y, x + w, y + h, rr);
+    this.arcTo(x + w, y + h, x, y + h, rr);
+    this.arcTo(x, y + h, x, y, rr);
+    this.arcTo(x, y, x + w, y, rr);
+    this.closePath();
+    return this;
+  };
+}
+
+const LOGICAL_WIDTH = 1280;
+const LOGICAL_HEIGHT = 720;
+const TILE_SIZE = 80;
+const GRID_COLS = 16; // 16 * 80 = 1280
+const GRID_ROWS = 9;  // 9 * 80 = 720
+
+const TILE = {
+  WALL: 0,         // Địa hình ngoài đường đi (Rừng cây, vách đá, suối sâu - Không thể đi vào)
+  ROAD: 1,         // Đường đi ngang dọc tiêu chuẩn
+  BRIDGE: 2,       // Cầu gỗ bắc qua suối / khe vực
+  ICE: 3,          // Mảng băng trơn trên đường (Chặng 1)
+  SLOW: 4,         // Vũng nước (Chặng 3) hoặc Cát sâu (Chặng 4) làm chậm
+  CLIMATE_ZONE: 5  // Vùng gió lạnh / gió thu / mưa rào / nắng gắt
+};
+
+const GAME_STATE = {
+  MENU: 'MENU',
+  TUTORIAL: 'TUTORIAL',
+  PLAYING: 'PLAYING',
+  PAUSED: 'PAUSED',
+  LEVEL_COMPLETE: 'LEVEL_COMPLETE',
+  GAME_OVER: 'GAME_OVER',
+  VICTORY: 'VICTORY'
+};
+
+function cellCenter(col, row) {
+  return {
+    x: col * TILE_SIZE + TILE_SIZE / 2,
+    y: row * TILE_SIZE + TILE_SIZE / 2
+  };
+}
+
+/* ============================================================================
+ * 1. AUDIO MANAGER
+ * ============================================================================ */
+class AudioManager {
+  constructor() {
+    this.ctx = null;
+    this.enabled = true;
+  }
+
+  init() {
+    try {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    if (this.enabled) {
+      this.init();
+      this.playClick();
+    }
+    return this.enabled;
+  }
+
+  playTone(freq, type, duration, vol = 0.15, slideTo = null, delay = 0) {
+    if (!this.enabled || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      if (slideTo) {
+        osc.frequency.exponentialRampToValueAtTime(slideTo, now + duration);
+      }
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    } catch (e) {}
+  }
+
+  playClick() {
+    this.playTone(520, 'sine', 0.08, 0.12, 680);
+  }
+
+  playDiamond() {
+    this.playTone(587.33, 'triangle', 0.12, 0.18);
+    this.playTone(880, 'sine', 0.22, 0.18, 1174.66, 0.07);
+  }
+
+  playHeal() {
+    // Âm thanh hồi phục mạng tươi sáng
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((n, i) => this.playTone(n, 'sine', 0.16, 0.18, null, i * 0.055));
+  }
+
+  playClimateItem() {
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((n, i) => this.playTone(n, 'sine', 0.2, 0.2, null, i * 0.07));
+  }
+
+  playGateUnlock() {
+    const notes = [392, 493.88, 587.33, 783.99, 987.77];
+    notes.forEach((n, i) => this.playTone(n, 'triangle', 0.25, 0.16, null, i * 0.065));
+  }
+
+  playHurt() {
+    this.playTone(220, 'sawtooth', 0.22, 0.16, 95);
+    this.playTone(150, 'square', 0.25, 0.12, 70, 0.05);
+  }
+
+  playStageClear() {
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((n, i) => this.playTone(n, 'sine', 0.28, 0.2, null, i * 0.09));
+  }
+
+  playVictory() {
+    const notes = [523.25, 659.25, 783.99, 659.25, 783.99, 1046.5];
+    const delays = [0, 0.11, 0.22, 0.33, 0.44, 0.6];
+    notes.forEach((n, i) => this.playTone(n, 'triangle', 0.32, 0.22, null, delays[i]));
+  }
+}
+
+/* ============================================================================
+ * 2. INPUT MANAGER (Keyboard WASD/Arrows + Multi-touch D-Pad)
+ * ============================================================================ */
+class InputManager {
+  constructor(onPauseToggle) {
+    this.keys = new Set();
+    this.touchDirs = new Set();
+    this.enabled = false;
+    this.onPauseToggle = onPauseToggle;
+
+    this.initKeyboard();
+    this.initTouchDpad();
+  }
+
+  initKeyboard() {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (this.onPauseToggle) this.onPauseToggle();
+        return;
+      }
+      if (!this.enabled) return;
+
+      const code = e.code;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].includes(code)) {
+        e.preventDefault();
+      }
+      this.keys.add(code);
+    });
+
+    window.addEventListener('keyup', (e) => {
+      this.keys.delete(e.code);
+    });
+
+    window.addEventListener('blur', () => {
+      this.clearAll();
+    });
+  }
+
+  initTouchDpad() {
+    const container = document.getElementById('touch-controls');
+    if (!container) return;
+    const btns = container.querySelectorAll('.dpad-btn');
+
+    const updateTouches = (e) => {
+      if (!this.enabled) {
+        this.clearTouch();
+        return;
+      }
+      e.preventDefault();
+      const activeDirs = new Set();
+      for (let i = 0; i < e.touches.length; i++) {
+        const t = e.touches[i];
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el) {
+          const btn = el.closest('.dpad-btn');
+          if (btn && btn.dataset.dir) {
+            activeDirs.add(btn.dataset.dir);
+          }
+        }
+      }
+      this.touchDirs = activeDirs;
+      btns.forEach(b => {
+        b.classList.toggle('pressed', this.touchDirs.has(b.dataset.dir));
+      });
+    };
+
+    container.addEventListener('touchstart', updateTouches, { passive: false });
+    container.addEventListener('touchmove', updateTouches, { passive: false });
+    container.addEventListener('touchend', updateTouches, { passive: false });
+    container.addEventListener('touchcancel', updateTouches, { passive: false });
+
+    btns.forEach(btn => {
+      const dir = btn.dataset.dir;
+      btn.addEventListener('mousedown', (e) => {
+        if (!this.enabled) return;
+        e.preventDefault();
+        this.touchDirs.add(dir);
+        btn.classList.add('pressed');
+      });
+      window.addEventListener('mouseup', () => {
+        if (this.touchDirs.has(dir)) {
+          this.touchDirs.delete(dir);
+          btn.classList.remove('pressed');
+        }
+      });
+    });
+  }
+
+  clearTouch() {
+    this.touchDirs.clear();
+    document.querySelectorAll('.dpad-btn').forEach(b => b.classList.remove('pressed'));
+  }
+
+  clearAll() {
+    this.keys.clear();
+    this.clearTouch();
+  }
+
+  getMovementVector() {
+    if (!this.enabled) return { x: 0, y: 0, rawX: 0, rawY: 0 };
+
+    let dx = 0;
+    let dy = 0;
+
+    if (this.keys.has('KeyW') || this.keys.has('ArrowUp') || this.touchDirs.has('up')) dy -= 1;
+    if (this.keys.has('KeyS') || this.keys.has('ArrowDown') || this.touchDirs.has('down')) dy += 1;
+    if (this.keys.has('KeyA') || this.keys.has('ArrowLeft') || this.touchDirs.has('left')) dx -= 1;
+    if (this.keys.has('KeyD') || this.keys.has('ArrowRight') || this.touchDirs.has('right')) dx += 1;
+
+    const rawX = dx;
+    const rawY = dy;
+
+    if (dx !== 0 && dy !== 0) {
+      const inv = 1 / Math.SQRT2;
+      dx *= inv;
+      dy *= inv;
+    }
+
+    return { x: dx, y: dy, rawX, rawY };
+  }
+}
+
+/* ============================================================================
+ * 3. PARTICLE & WEATHER SYSTEM
+ * ============================================================================ */
+class ParticleSystem {
+  constructor() {
+    this.weatherParticles = [];
+    this.fxParticles = [];
+    this.ripples = [];
+    this.biome = 'snow';
+    this.windTimer = 0;
+    this.windActive = false;
+  }
+
+  initBiome(biome) {
+    this.biome = biome;
+    this.weatherParticles = [];
+    this.fxParticles = [];
+    this.ripples = [];
+    this.windTimer = 0;
+
+    const count = biome === 'snow' ? 60 : biome === 'autumn' ? 40 : biome === 'tropical' ? 80 : 50;
+    for (let i = 0; i < count; i++) {
+      this.weatherParticles.push(this.createWeatherParticle(true));
+    }
+  }
+
+  createWeatherParticle(randomY = false) {
+    if (this.biome === 'snow') {
+      return {
+        x: Math.random() * LOGICAL_WIDTH,
+        y: randomY ? Math.random() * LOGICAL_HEIGHT : -15,
+        r: 2 + Math.random() * 3.5,
+        vx: -15 + Math.random() * 30,
+        vy: 35 + Math.random() * 45,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.45 + Math.random() * 0.45
+      };
+    } else if (this.biome === 'autumn') {
+      const colors = ['#f59e0b', '#ea580c', '#dc2626', '#fbbf24', '#d97706'];
+      return {
+        x: randomY ? Math.random() * LOGICAL_WIDTH : -20,
+        y: Math.random() * LOGICAL_HEIGHT,
+        size: 5 + Math.random() * 5,
+        vx: 55 + Math.random() * 65,
+        vy: 18 + Math.random() * 28,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 4,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      };
+    } else if (this.biome === 'tropical') {
+      return {
+        x: Math.random() * (LOGICAL_WIDTH + 200),
+        y: randomY ? Math.random() * LOGICAL_HEIGHT : -20,
+        len: 12 + Math.random() * 10,
+        vx: -90,
+        vy: 420 + Math.random() * 120,
+        alpha: 0.35 + Math.random() * 0.3
+      };
+    } else {
+      return {
+        x: randomY ? Math.random() * LOGICAL_WIDTH : -20,
+        y: Math.random() * LOGICAL_HEIGHT,
+        r: 1.5 + Math.random() * 2.2,
+        vx: 130 + Math.random() * 90,
+        vy: -12 + Math.random() * 24,
+        alpha: 0.28 + Math.random() * 0.35,
+        color: Math.random() > 0.5 ? '#fde68a' : '#f59e0b'
+      };
+    }
+  }
+
+  spawnSparkles(x, y, color = '#38bdf8', count = 18) {
+    for (let i = 0; i < count; i++) {
+      const ang = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+      const spd = 45 + Math.random() * 110;
+      this.fxParticles.push({
+        x, y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        r: 3 + Math.random() * 4,
+        color,
+        life: 0.55 + Math.random() * 0.35,
+        maxLife: 0.9
+      });
+    }
+  }
+
+  spawnHealEffect(x, y) {
+    const colors = ['#f43f5e', '#4ade80', '#fda4af', '#fde047'];
+    for (let i = 0; i < 24; i++) {
+      const ang = (Math.PI * 2 * i) / 24;
+      const spd = 35 + Math.random() * 85;
+      this.fxParticles.push({
+        x: x + (Math.random() - 0.5) * 14,
+        y: y + (Math.random() - 0.5) * 14,
+        vx: Math.cos(ang) * spd * 0.7,
+        vy: Math.sin(ang) * spd - 35,
+        r: 4 + Math.random() * 3.5,
+        color: colors[i % colors.length],
+        life: 0.65 + Math.random() * 0.35,
+        maxLife: 1.0
+      });
+    }
+  }
+
+  spawnWaterDrinkEffect(x, y) {
+    for (let i = 0; i < 22; i++) {
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 1.8;
+      const spd = 40 + Math.random() * 85;
+      this.fxParticles.push({
+        x: x + (Math.random() - 0.5) * 20,
+        y: y - 10,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd - 30,
+        r: 3.5 + Math.random() * 3.5,
+        color: i % 2 === 0 ? '#38bdf8' : '#7dd3fc',
+        life: 0.7 + Math.random() * 0.3,
+        maxLife: 1.0
+      });
+    }
+  }
+
+  spawnFootstep(x, y, color = 'rgba(255,255,255,0.35)') {
+    this.fxParticles.push({
+      x: x + (Math.random() - 0.5) * 8,
+      y: y + 14,
+      vx: (Math.random() - 0.5) * 12,
+      vy: (Math.random() - 0.5) * 12,
+      r: 2.5 + Math.random() * 2,
+      color,
+      life: 0.25,
+      maxLife: 0.25
+    });
+  }
+
+  update(dt) {
+    this.windTimer += dt;
+    this.windActive = (Math.sin(this.windTimer * 1.4) > -0.2);
+
+    for (let i = 0; i < this.weatherParticles.length; i++) {
+      const p = this.weatherParticles[i];
+      if (this.biome === 'snow') {
+        p.phase += dt * 2;
+        p.x += (p.vx + Math.sin(p.phase) * 18) * dt;
+        p.y += p.vy * dt;
+        if (p.y > LOGICAL_HEIGHT + 10) {
+          p.y = -10;
+          p.x = Math.random() * LOGICAL_WIDTH;
+        }
+        if (p.x < -10) p.x = LOGICAL_WIDTH + 10;
+        if (p.x > LOGICAL_WIDTH + 10) p.x = -10;
+      } else if (this.biome === 'autumn') {
+        const boost = this.windActive ? 1.45 : 0.75;
+        p.x += p.vx * boost * dt;
+        p.y += (p.vy + Math.sin(p.rot) * 15) * dt;
+        p.rot += p.vRot * dt;
+        if (p.x > LOGICAL_WIDTH + 20 || p.y > LOGICAL_HEIGHT + 20) {
+          p.x = -15;
+          p.y = Math.random() * (LOGICAL_HEIGHT - 100);
+        }
+      } else if (this.biome === 'tropical') {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.y > LOGICAL_HEIGHT) {
+          if (Math.random() < 0.25 && this.ripples.length < 25) {
+            this.ripples.push({
+              x: Math.random() * LOGICAL_WIDTH,
+              y: Math.random() * LOGICAL_HEIGHT,
+              r: 2,
+              maxR: 12 + Math.random() * 8,
+              alpha: 0.55
+            });
+          }
+          p.y = -15;
+          p.x = Math.random() * (LOGICAL_WIDTH + 180);
+        }
+      } else if (this.biome === 'desert') {
+        p.x += p.vx * dt;
+        p.y += (p.vy + Math.sin(this.windTimer * 3 + i) * 15) * dt;
+        if (p.x > LOGICAL_WIDTH + 15) {
+          p.x = -15;
+          p.y = Math.random() * LOGICAL_HEIGHT;
+        }
+      }
+    }
+
+    for (let i = this.ripples.length - 1; i >= 0; i--) {
+      const rp = this.ripples[i];
+      rp.r += dt * 24;
+      rp.alpha -= dt * 0.9;
+      if (rp.alpha <= 0 || rp.r >= rp.maxR) {
+        this.ripples.splice(i, 1);
+      }
+    }
+
+    for (let i = this.fxParticles.length - 1; i >= 0; i--) {
+      const f = this.fxParticles[i];
+      f.x += f.vx * dt;
+      f.y += f.vy * dt;
+      f.life -= dt;
+      if (f.life <= 0) {
+        this.fxParticles.splice(i, 1);
+      }
+    }
+  }
+
+  drawGroundRipples(ctx) {
+    if (this.biome !== 'tropical') return;
+    ctx.save();
+    for (const rp of this.ripples) {
+      ctx.strokeStyle = `rgba(186, 230, 253, ${rp.alpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(rp.x, rp.y, rp.r, rp.r * 0.55, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawFX(ctx) {
+    ctx.save();
+    for (const f of this.fxParticles) {
+      const ratio = Math.max(0, f.life / f.maxLife);
+      ctx.globalAlpha = ratio;
+      ctx.fillStyle = f.color;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r * (0.4 + ratio * 0.6), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawWeatherOverlay(ctx) {
+    ctx.save();
+    if (this.biome === 'snow') {
+      for (const p of this.weatherParticles) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (this.biome === 'autumn') {
+      for (const p of this.weatherParticles) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    } else if (this.biome === 'tropical') {
+      ctx.strokeStyle = 'rgba(186, 230, 253, 0.42)';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      for (const p of this.weatherParticles) {
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + p.vx * 0.032, p.y + p.len);
+      }
+      ctx.stroke();
+    } else if (this.biome === 'desert') {
+      for (const p of this.weatherParticles) {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+}
+
+/* ============================================================================
+ * 4. LEVEL MANAGER & ORTHOGONAL MAZE DEFINITIONS (16x9 Grid)
+ * ============================================================================ */
+class LevelManager {
+  constructor() {
+    this.levels = this.defineLevels();
+    this.validateAllLevels();
+  }
+
+  defineLevels() {
+    /**
+     * Bản đồ đường đi ngang-dọc nguyên bản (1 ô gọn gàng), bổ sung:
+     * - chestCell: Kho máu phụ (+1 Tim)
+     * - heartCells: 2 Vật phẩm Trái tim hồi phục (+1 Tim) đặt ngay trên đường đi gần các bẫy
+     */
+    return [
+      /* CHẶNG 1: HÀNH TRÌNH QUA MIỀN BĂNG TUYẾT */
+      {
+        id: 1,
+        name: 'CHẶNG 1: MIỀN BĂNG TUYẾT',
+        biome: 'snow',
+        itemKey: 'coat_warm',
+        itemName: 'Áo khoác giữ ấm',
+        knowledge: 'Ở vùng lạnh, chúng ta cần mặc trang phục giữ ấm để bảo vệ cơ thể.',
+        grid: [
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 1, 1, 1, 0, 0, 0, 5, 5, 1, 1, 1, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 1, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 1, 0, 0, 0, 0 ],
+          [ 0, 1, 1, 1, 1, 3, 3, 1, 1, 0, 0, 1, 1, 1, 1, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 0, 0, 3, 3, 1, 1, 0, 0, 0, 0 ],
+          [ 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        ],
+        spawnCell: { c: 1, r: 4 },
+        gateCell: { c: 14, r: 4, isTreasureGate: false },
+        climateItemCell: { c: 2, r: 1, type: 'coat_warm', name: 'Áo khoác giữ ấm' },
+        chestCell: { c: 2, r: 7 }, // Kho máu phụ (+1 Tim)
+        heartCells: [
+          { c: 4, r: 5 },  // Vật phẩm hồi mạng 1 (trước bẫy phía nam)
+          { c: 11, r: 4 }  // Vật phẩm hồi mạng 2 (ngay ngã ba trước cổng ra)
+        ],
+        diamondCells: [
+          { c: 3, r: 4 },
+          { c: 9, r: 1 },
+          { c: 6, r: 7 },
+          { c: 13, r: 1 }
+        ],
+        hazards: [
+          {
+            type: 'MOVING_ICE', r: 17,
+            ax: 4 * 80 + 40, ay: 6 * 80 + 16,
+            bx: 4 * 80 + 40, by: 7 * 80 + 64,
+            speed: 2.0
+          },
+          {
+            type: 'MOVING_ICE', r: 17,
+            ax: 8 * 80 + 16, ay: 3 * 80 + 40,
+            bx: 8 * 80 + 64, by: 3 * 80 + 40,
+            speed: 2.1
+          },
+          {
+            type: 'MOVING_ICE', r: 17,
+            ax: 11 * 80 + 16, ay: 5 * 80 + 40,
+            bx: 11 * 80 + 64, by: 5 * 80 + 40,
+            speed: 2.0
+          }
+        ]
+      },
+
+      /* CHẶNG 2: KHÁM PHÁ RỪNG MÙA THU */
+      {
+        id: 2,
+        name: 'CHẶNG 2: RỪNG MÙA THU',
+        biome: 'autumn',
+        itemKey: 'jacket_light',
+        itemName: 'Áo khoác nhẹ',
+        knowledge: 'Ở nhiều nơi thuộc đới ôn hòa, cảnh vật thay đổi theo mùa. Vào ngày thu mát mẻ, ta có thể cần áo khoác nhẹ.',
+        gullyCol: 9,
+        grid: [
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 5, 5, 1, 1, 0, 0, 1, 0, 1, 1, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 1, 1, 0, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 5, 1, 0, 0 ],
+          [ 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        ],
+        spawnCell: { c: 1, r: 6 },
+        gateCell: { c: 14, r: 2, isTreasureGate: false },
+        climateItemCell: { c: 2, r: 1, type: 'jacket_light', name: 'Áo khoác nhẹ' },
+        chestCell: { c: 13, r: 7 }, // Kho máu phụ (+1 Tim)
+        heartCells: [
+          { c: 4, r: 4 },  // Vật phẩm hồi mạng 1 (ngã ba trung tâm)
+          { c: 10, r: 4 }  // Vật phẩm hồi mạng 2 (ngay sau khi qua cầu gỗ)
+        ],
+        diamondCells: [
+          { c: 3, r: 6 },
+          { c: 7, r: 2 },
+          { c: 6, r: 7 },
+          { c: 13, r: 5 }
+        ],
+        hazards: [
+          {
+            type: 'MOVING_ROCK', r: 17,
+            ax: 4 * 80 + 16, ay: 3 * 80 + 40,
+            bx: 4 * 80 + 64, by: 3 * 80 + 40,
+            speed: 1.9
+          },
+          {
+            type: 'MOVING_ROCK', r: 17,
+            ax: 8 * 80 + 16, ay: 6 * 80 + 40,
+            bx: 8 * 80 + 64, by: 6 * 80 + 40,
+            speed: 2.0
+          },
+          {
+            type: 'MOVING_ROCK', r: 17,
+            ax: 11 * 80 + 16, ay: 3 * 80 + 40,
+            bx: 11 * 80 + 64, by: 3 * 80 + 40,
+            speed: 2.1
+          }
+        ]
+      },
+
+      /* CHẶNG 3: BÍ MẬT RỪNG NHIỆT ĐỚI */
+      {
+        id: 3,
+        name: 'CHẶNG 3: RỪNG NHIỆT ĐỚI',
+        biome: 'tropical',
+        itemKey: 'raincoat',
+        itemName: 'Áo mưa',
+        knowledge: 'Ở những nơi mưa nhiều, cây cối thường xanh tốt. Khi đi dưới mưa, chúng ta cần chuẩn bị áo mưa.',
+        streamCol: 7,
+        grid: [
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0 ],
+          [ 0, 1, 1, 1, 1, 0, 5, 0, 0, 1, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 5, 0, 0, 4, 0, 1, 1, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 4, 1, 1, 2, 1, 1, 0, 1, 0, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 1, 0, 0, 5, 0, 1, 0, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 4, 1, 1, 1, 1, 0 ],
+          [ 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        ],
+        spawnCell: { c: 1, r: 2 },
+        gateCell: { c: 14, r: 6, isTreasureGate: false },
+        climateItemCell: { c: 2, r: 7, type: 'raincoat', name: 'Áo mưa' },
+        chestCell: { c: 13, r: 1 }, // Kho máu phụ (+1 Tim)
+        heartCells: [
+          { c: 4, r: 6 },  // Vật phẩm hồi mạng 1 (ngay lối đi lấy Áo mưa)
+          { c: 8, r: 4 }   // Vật phẩm hồi mạng 2 (ngay sau cầu gỗ qua suối)
+        ],
+        diamondCells: [
+          { c: 4, r: 2 },
+          { c: 6, r: 7 },
+          { c: 10, r: 1 },
+          { c: 12, r: 3 }
+        ],
+        hazards: [
+          {
+            type: 'TROPICAL_THORN', r: 17,
+            ax: 4 * 80 + 16, ay: 5 * 80 + 40,
+            bx: 4 * 80 + 64, by: 5 * 80 + 40,
+            speed: 1.9
+          },
+          {
+            type: 'TROPICAL_THORN', r: 17,
+            ax: 9 * 80 + 16, ay: 2 * 80 + 40,
+            bx: 9 * 80 + 64, by: 2 * 80 + 40,
+            speed: 2.0
+          },
+          {
+            type: 'TROPICAL_THORN', r: 17,
+            ax: 11 * 80 + 40, ay: 6 * 80 + 16,
+            bx: 11 * 80 + 40, by: 6 * 80 + 64,
+            speed: 2.1
+          }
+        ]
+      },
+
+      /* CHẶNG 4: VƯỢT QUA HOANG MẠC */
+      {
+        id: 4,
+        name: 'CHẶNG 4: VƯỢT QUA HOANG MẠC',
+        biome: 'desert',
+        itemKey: 'water_bottle',
+        itemName: 'Bình nước',
+        knowledge: 'Ở hoang mạc nóng và khô hạn, nước uống rất quan trọng khi chúng ta đi khám phá.',
+        grid: [
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0 ],
+          [ 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0 ],
+          [ 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0 ],
+          [ 0, 1, 1, 1, 0, 0, 0, 1, 5, 5, 1, 0, 0, 1, 1, 0 ],
+          [ 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0 ],
+          [ 0, 0, 0, 1, 4, 1, 1, 1, 0, 0, 1, 4, 1, 1, 0, 0 ],
+          [ 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        ],
+        spawnCell: { c: 1, r: 4 },
+        gateCell: { c: 14, r: 4, isTreasureGate: true },
+        climateItemCell: { c: 6, r: 1, type: 'water_bottle', name: 'Bình nước' },
+        chestCell: { c: 6, r: 7 }, // Kho máu phụ (+1 Tim)
+        heartCells: [
+          { c: 5, r: 2 },  // Vật phẩm hồi mạng 1 (trước khi rẽ lên lấy Bình nước)
+          { c: 10, r: 4 }  // Vật phẩm hồi mạng 2 (ngã rẽ trung tâm phía đông)
+        ],
+        diamondCells: [
+          { c: 3, r: 4 },
+          { c: 8, r: 2 },
+          { c: 7, r: 6 },
+          { c: 12, r: 1 }
+        ],
+        hazards: [
+          {
+            type: 'MOVING_BOULDER', r: 18,
+            ax: 3 * 80 + 16, ay: 2 * 80 + 40,
+            bx: 3 * 80 + 64, by: 2 * 80 + 40,
+            speed: 2.0
+          },
+          {
+            type: 'MOVING_BOULDER', r: 18,
+            ax: 7 * 80 + 16, ay: 4 * 80 + 40,
+            bx: 7 * 80 + 64, by: 4 * 80 + 40,
+            speed: 2.1
+          },
+          {
+            type: 'MOVING_BOULDER', r: 18,
+            ax: 13 * 80 + 16, ay: 2 * 80 + 40,
+            bx: 13 * 80 + 64, by: 2 * 80 + 40,
+            speed: 2.2
+          }
+        ]
+      }
+    ];
+  }
+
+  validateAllLevels() {
+    this.levels.forEach(lvl => {
+      const visited = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(false));
+      const queue = [{ c: lvl.spawnCell.c, r: lvl.spawnCell.r }];
+      visited[lvl.spawnCell.r][lvl.spawnCell.c] = true;
+
+      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      while (queue.length > 0) {
+        const cur = queue.shift();
+        for (const [dc, dr] of dirs) {
+          const nc = cur.c + dc;
+          const nr = cur.r + dr;
+          if (
+            nr >= 0 && nr < GRID_ROWS &&
+            nc >= 0 && nc < GRID_COLS &&
+            !visited[nr][nc] &&
+            lvl.grid[nr][nc] !== TILE.WALL
+          ) {
+            visited[nr][nc] = true;
+            queue.push({ c: nc, r: nr });
+          }
+        }
+      }
+
+      const reachableDiamonds = lvl.diamondCells.filter(d => visited[d.r][d.c]).length;
+      const itemOk = visited[lvl.climateItemCell.r][lvl.climateItemCell.c];
+      const gateOk = visited[lvl.gateCell.r][lvl.gateCell.c];
+      const chestOk = visited[lvl.chestCell.r][lvl.chestCell.c];
+      const heartsOk = lvl.heartCells.every(h => visited[h.r][h.c]);
+
+      console.info(
+        `[LevelValidator] Chặng ${lvl.id}: Kim cương=${reachableDiamonds}/4, Vật phẩm=${itemOk}, Kho máu=${chestOk}, Tim hồi phục=${heartsOk}, Cổng=${gateOk}`
+      );
+    });
+  }
+}
+
+/* ============================================================================
+ * 5. OFFSCREEN WORLD & ORTHOGONAL CORRIDOR RENDERER
+ * ============================================================================ */
+class WorldRenderer {
+  constructor() {
+    this.bgCache = new Map();
+    this.decorCache = new Map();
+  }
+
+  getDecorations(level) {
+    if (this.decorCache.has(level.id)) {
+      return this.decorCache.get(level.id);
+    }
+
+    const decors = [];
+    const b = level.biome;
+
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        if (level.grid[r][c] !== TILE.WALL) continue;
+        if (level.gullyCol === c || level.streamCol === c) continue;
+
+        const cx = c * TILE_SIZE + TILE_SIZE / 2;
+        const cy = r * TILE_SIZE + TILE_SIZE / 2;
+        const hash = (r * 31 + c * 17 + level.id * 13) % 10;
+
+        if (b === 'snow') {
+          if (hash < 7) {
+            decors.push({ type: 'PINE_SNOW', x: cx, y: cy + 4, r: 24, canopyR: 34 });
+          } else {
+            decors.push({ type: 'ROCK_ICE', x: cx, y: cy + 4, r: 24 });
+          }
+        } else if (b === 'autumn') {
+          const colors = ['#ea580c', '#f59e0b', '#dc2626', '#d97706'];
+          if (hash < 7) {
+            decors.push({
+              type: 'TREE_AUTUMN',
+              x: cx,
+              y: cy + 4,
+              r: 22,
+              canopyR: 34,
+              color: colors[(r + c) % colors.length]
+            });
+          } else {
+            decors.push({ type: 'LOG_AUTUMN', x: cx, y: cy + 4, r: 22 });
+          }
+        } else if (b === 'tropical') {
+          if (hash < 7) {
+            decors.push({ type: 'TREE_JUNGLE', x: cx, y: cy + 4, r: 24, canopyR: 35 });
+          } else {
+            decors.push({ type: 'ROCK_MOSS', x: cx, y: cy + 4, r: 23 });
+          }
+        } else {
+          if (hash < 5) {
+            decors.push({ type: 'CACTUS_DECOR', x: cx, y: cy + 4, r: 22 });
+          } else {
+            decors.push({ type: 'ROCK_DESERT', x: cx, y: cy + 4, r: 25 });
+          }
+        }
+      }
+    }
+
+    this.decorCache.set(level.id, decors);
+    return decors;
+  }
+
+  getBackgroundCanvas(level) {
+    if (this.bgCache.has(level.id)) {
+      return this.bgCache.get(level.id);
+    }
+
+    const off = document.createElement('canvas');
+    off.width = LOGICAL_WIDTH;
+    off.height = LOGICAL_HEIGHT;
+    const ctx = off.getContext('2d');
+    const b = level.biome;
+
+    const wallGrad = ctx.createLinearGradient(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    if (b === 'snow') {
+      wallGrad.addColorStop(0, '#93c5fd');
+      wallGrad.addColorStop(1, '#60a5fa');
+    } else if (b === 'autumn') {
+      wallGrad.addColorStop(0, '#5c2808');
+      wallGrad.addColorStop(1, '#3b1804');
+    } else if (b === 'tropical') {
+      wallGrad.addColorStop(0, '#064e3b');
+      wallGrad.addColorStop(1, '#022c22');
+    } else {
+      wallGrad.addColorStop(0, '#b45309');
+      wallGrad.addColorStop(1, '#78350f');
+    }
+    ctx.fillStyle = wallGrad;
+    ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        if (level.grid[r][c] === TILE.WALL) {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+          ctx.fillRect(c * TILE_SIZE + 2, r * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+        }
+      }
+    }
+
+    if (level.gullyCol !== undefined) {
+      const gx = level.gullyCol * TILE_SIZE;
+      ctx.fillStyle = '#271203';
+      ctx.fillRect(gx + 10, 0, TILE_SIZE - 20, LOGICAL_HEIGHT);
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(gx + 10, 0, TILE_SIZE - 20, LOGICAL_HEIGHT);
+    }
+
+    if (level.streamCol !== undefined) {
+      const sx = level.streamCol * TILE_SIZE;
+      const sGrad = ctx.createLinearGradient(sx, 0, sx + TILE_SIZE, 0);
+      sGrad.addColorStop(0, '#0369a1');
+      sGrad.addColorStop(0.5, '#38bdf8');
+      sGrad.addColorStop(1, '#0369a1');
+      ctx.fillStyle = sGrad;
+      ctx.fillRect(sx + 6, 0, TILE_SIZE - 12, LOGICAL_HEIGHT);
+      ctx.strokeStyle = '#a16207';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(sx + 6, 0, TILE_SIZE - 12, LOGICAL_HEIGHT);
+    }
+
+    const roadColors = {
+      snow:     { fill: '#f8fafc', curb: '#0284c7', dot: '#bae6fd' },
+      autumn:   { fill: '#fde68a', curb: '#b45309', dot: '#f59e0b' },
+      tropical: { fill: '#d9f99d', curb: '#15803d', dot: '#86efac' },
+      desert:   { fill: '#fef08a', curb: '#d97706', dot: '#fcd34d' }
+    }[b];
+
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        const t = level.grid[r][c];
+        if (t === TILE.WALL) continue;
+
+        const x = c * TILE_SIZE;
+        const y = r * TILE_SIZE;
+
+        ctx.fillStyle = roadColors.fill;
+        ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+
+        ctx.fillStyle = roadColors.dot;
+        ctx.beginPath();
+        ctx.arc(x + 24, y + 24, 4, 0, Math.PI * 2);
+        ctx.arc(x + 56, y + 56, 4, 0, Math.PI * 2);
+        ctx.arc(x + 56, y + 24, 3, 0, Math.PI * 2);
+        ctx.arc(x + 24, y + 56, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = roadColors.curb;
+        const curbW = 6;
+        if (r > 0 && level.grid[r - 1][c] === TILE.WALL) {
+          ctx.fillRect(x, y, TILE_SIZE, curbW);
+        }
+        if (r < GRID_ROWS - 1 && level.grid[r + 1][c] === TILE.WALL) {
+          ctx.fillRect(x, y + TILE_SIZE - curbW, TILE_SIZE, curbW);
+        }
+        if (c > 0 && level.grid[r][c - 1] === TILE.WALL) {
+          ctx.fillRect(x, y, curbW, TILE_SIZE);
+        }
+        if (c < GRID_COLS - 1 && level.grid[r][c + 1] === TILE.WALL) {
+          ctx.fillRect(x + TILE_SIZE - curbW, y, curbW, TILE_SIZE);
+        }
+
+        if (t === TILE.BRIDGE) {
+          ctx.fillStyle = '#78350f';
+          ctx.fillRect(x, y + 4, TILE_SIZE, TILE_SIZE - 8);
+          for (let i = 0; i < 5; i++) {
+            ctx.fillStyle = i % 2 === 0 ? '#b45309' : '#92400e';
+            ctx.fillRect(x + i * 16 + 2, y + 8, 12, TILE_SIZE - 16);
+          }
+          ctx.fillStyle = '#451a03';
+          ctx.fillRect(x, y + 2, TILE_SIZE, 6);
+          ctx.fillRect(x, y + TILE_SIZE - 8, TILE_SIZE, 6);
+        }
+      }
+    }
+
+    const decors = this.getDecorations(level);
+    for (const ob of decors) {
+      this.drawObstacleBase(ctx, ob);
+    }
+
+    this.bgCache.set(level.id, off);
+    return off;
+  }
+
+  drawSpecialRoadTiles(ctx, level, time) {
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        const t = level.grid[r][c];
+        if (t <= TILE.BRIDGE) continue;
+
+        const x = c * TILE_SIZE;
+        const y = r * TILE_SIZE;
+        const cx = x + TILE_SIZE / 2;
+        const cy = y + TILE_SIZE / 2;
+
+        ctx.save();
+        if (t === TILE.ICE) {
+          const grad = ctx.createLinearGradient(x, y, x + TILE_SIZE, y + TILE_SIZE);
+          grad.addColorStop(0, 'rgba(125, 211, 252, 0.85)');
+          grad.addColorStop(1, 'rgba(56, 189, 248, 0.75)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.roundRect(x + 6, y + 6, TILE_SIZE - 12, TILE_SIZE - 12, 10);
+          ctx.fill();
+
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(x + 18, y + 32);
+          ctx.lineTo(x + 36, y + 18);
+          ctx.moveTo(x + 38, y + 58);
+          ctx.lineTo(x + 60, y + 38);
+          ctx.stroke();
+        } else if (t === TILE.SLOW) {
+          if (level.biome === 'tropical') {
+            ctx.fillStyle = 'rgba(14, 116, 144, 0.78)';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 31, 24, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(103, 232, 249, 0.65)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = 'rgba(180, 83, 9, 0.65)';
+            ctx.beginPath();
+            ctx.roundRect(x + 8, y + 8, TILE_SIZE - 16, TILE_SIZE - 16, 12);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(253, 230, 138, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        } else if (t === TILE.CLIMATE_ZONE) {
+          if (level.biome === 'snow') {
+            ctx.fillStyle = `rgba(56, 189, 248, ${0.22 + Math.sin(time * 4) * 0.08})`;
+            ctx.fillRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+          } else if (level.biome === 'autumn') {
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.22)';
+            ctx.fillRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+            ctx.strokeStyle = 'rgba(254, 240, 138, 0.7)';
+            ctx.lineWidth = 2;
+            const off = ((time * 60) % 40) - 20;
+            ctx.beginPath();
+            ctx.moveTo(cx - 20 + off, cy - 8);
+            ctx.lineTo(cx + 15 + off, cy - 8);
+            ctx.moveTo(cx - 15 + off, cy + 10);
+            ctx.lineTo(cx + 20 + off, cy + 10);
+            ctx.stroke();
+          } else if (level.biome === 'tropical') {
+            ctx.fillStyle = `rgba(14, 165, 233, ${0.24 + Math.sin(time * 5) * 0.08})`;
+            ctx.fillRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+          } else if (level.biome === 'desert') {
+            ctx.fillStyle = `rgba(249, 115, 22, ${0.26 + Math.sin(time * 4) * 0.08})`;
+            ctx.fillRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+          }
+        }
+        ctx.restore();
+      }
+    }
+  }
+
+  drawObstacleBase(ctx, ob) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+    ctx.beginPath();
+    ctx.ellipse(ob.x + 3, ob.y + 8, ob.r * 1.05, ob.r * 0.65, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (ob.type === 'PINE_SNOW' || ob.type === 'TREE_AUTUMN' || ob.type === 'TREE_JUNGLE') {
+      ctx.fillStyle = '#5c3a21';
+      ctx.strokeStyle = '#3b2313';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(ob.x, ob.y, ob.r * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (ob.type === 'ROCK_ICE') {
+      const g = ctx.createLinearGradient(ob.x - ob.r, ob.y - ob.r, ob.x + ob.r, ob.y + ob.r);
+      g.addColorStop(0, '#e0f2fe');
+      g.addColorStop(0.5, '#7dd3fc');
+      g.addColorStop(1, '#0369a1');
+      ctx.fillStyle = g;
+      this.drawPolygonRock(ctx, ob.x, ob.y, ob.r);
+    } else if (ob.type === 'LOG_AUTUMN') {
+      ctx.fillStyle = '#78350f';
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(ob.x - ob.r * 1.2, ob.y - ob.r * 0.55, ob.r * 2.4, ob.r * 1.1, 8);
+      ctx.fill();
+      ctx.stroke();
+    } else if (ob.type === 'ROCK_MOSS') {
+      ctx.fillStyle = '#4b5563';
+      this.drawPolygonRock(ctx, ob.x, ob.y, ob.r);
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(ob.x - 4, ob.y - 5, ob.r * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (ob.type === 'ROCK_DESERT') {
+      const g = ctx.createLinearGradient(ob.x, ob.y - ob.r, ob.x, ob.y + ob.r);
+      g.addColorStop(0, '#f97316');
+      g.addColorStop(1, '#9a3412');
+      ctx.fillStyle = g;
+      this.drawPolygonRock(ctx, ob.x, ob.y, ob.r);
+    } else if (ob.type === 'CACTUS_DECOR') {
+      ctx.fillStyle = '#15803d';
+      ctx.strokeStyle = '#14532d';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(ob.x - 8, ob.y - 22, 16, 34, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.roundRect(ob.x - 18, ob.y - 12, 12, 8, 4);
+      ctx.roundRect(ob.x + 6, ob.y - 16, 12, 8, 4);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawPolygonRock(ctx, x, y, r) {
+    ctx.beginPath();
+    const pts = 7;
+    for (let i = 0; i < pts; i++) {
+      const a = (Math.PI * 2 * i) / pts;
+      const rad = r * (i % 2 === 0 ? 1.0 : 0.82);
+      const px = x + Math.cos(a) * rad;
+      const py = y + Math.sin(a) * rad;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  drawTreeCanopy(ctx, ob) {
+    if (!ob.canopyR) return;
+    ctx.save();
+    if (ob.type === 'PINE_SNOW') {
+      const layers = [
+        { r: ob.canopyR, yOff: -4, col: '#0f766e', snow: '#f0f9ff' },
+        { r: ob.canopyR * 0.75, yOff: -13, col: '#115e59', snow: '#ffffff' },
+        { r: ob.canopyR * 0.48, yOff: -21, col: '#134e4a', snow: '#ffffff' }
+      ];
+      layers.forEach(l => {
+        ctx.fillStyle = l.col;
+        ctx.beginPath();
+        ctx.arc(ob.x, ob.y + l.yOff, l.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = l.snow;
+        ctx.beginPath();
+        ctx.arc(ob.x - 2, ob.y + l.yOff - 3, l.r * 0.76, Math.PI * 0.95, Math.PI * 2.05);
+        ctx.fill();
+      });
+    } else if (ob.type === 'TREE_AUTUMN') {
+      ctx.fillStyle = ob.color || '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(ob.x, ob.y - 10, ob.canopyR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#fde047';
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath();
+      ctx.arc(ob.x - 8, ob.y - 16, ob.canopyR * 0.52, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (ob.type === 'TREE_JUNGLE') {
+      ctx.fillStyle = '#065f46';
+      ctx.beginPath();
+      ctx.arc(ob.x, ob.y - 10, ob.canopyR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(ob.x - 8, ob.y - 14, ob.canopyR * 0.6, 0, Math.PI * 2);
+      ctx.arc(ob.x + 9, ob.y - 12, ob.canopyR * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawHazard(ctx, hz, time) {
+    ctx.save();
+    if (hz.ax !== undefined) {
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.32)';
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(hz.ax, hz.ay);
+      ctx.lineTo(hz.bx, hz.by);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.strokeStyle = `rgba(244, 63, 94, ${0.5 + Math.sin(time * 5) * 0.25})`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(hz.x, hz.y, hz.r + 3, 0, Math.PI * 2);
+    ctx.stroke();
+
+    if (hz.type === 'MOVING_ICE') {
+      ctx.fillStyle = '#38bdf8';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      const spikes = 8;
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i++) {
+        const rad = i % 2 === 0 ? hz.r : hz.r * 0.48;
+        const a = (Math.PI * i) / spikes + time * 2.5;
+        const px = hz.x + Math.cos(a) * rad;
+        const py = hz.y + Math.sin(a) * rad;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (hz.type === 'TROPICAL_THORN') {
+      ctx.fillStyle = '#14532d';
+      ctx.beginPath();
+      ctx.arc(hz.x, hz.y, hz.r * 0.85, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f43f5e';
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI * 2 * i) / 6 + time * 1.5;
+        ctx.beginPath();
+        ctx.arc(hz.x + Math.cos(a) * (hz.r * 0.62), hz.y + Math.sin(a) * (hz.r * 0.62), 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (hz.type === 'MOVING_ROCK' || hz.type === 'MOVING_BOULDER') {
+      ctx.translate(hz.x, hz.y);
+      ctx.rotate(time * 3);
+      ctx.fillStyle = '#78350f';
+      this.drawPolygonRock(ctx, 0, 0, hz.r);
+    }
+    ctx.restore();
+  }
+
+  drawHeartShape(ctx, x, y, size, fill, stroke) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size / 24, size / 24);
+    ctx.beginPath();
+    ctx.moveTo(0, 9);
+    ctx.bezierCurveTo(-12, 1, -12, -9, -6, -9);
+    ctx.bezierCurveTo(-2, -9, 0, -5, 0, -4);
+    ctx.bezierCurveTo(0, -5, 2, -9, 6, -9);
+    ctx.bezierCurveTo(12, -9, 12, 1, 0, 9);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (stroke) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawCollectibles(ctx, level, time) {
+    // 1. Vẽ Kim cương
+    level.diamonds.forEach((d, idx) => {
+      if (d.collected) return;
+      const bob = Math.sin(time * 4 + idx) * 4;
+      ctx.save();
+      ctx.translate(d.x, d.y + bob);
+
+      const g = ctx.createRadialGradient(0, 0, 2, 0, 0, 24);
+      g.addColorStop(0, 'rgba(56, 189, 248, 0.75)');
+      g.addColorStop(1, 'rgba(56, 189, 248, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -14);
+      ctx.lineTo(12, -3);
+      ctx.lineTo(0, 14);
+      ctx.lineTo(-12, -3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#bae6fd';
+      ctx.beginPath();
+      ctx.moveTo(0, -14);
+      ctx.lineTo(5, -3);
+      ctx.lineTo(0, 14);
+      ctx.lineTo(-5, -3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // 2. Vẽ các Vật phẩm Hồi phục mạng (Trái tim năng lượng) trên đường đi
+    if (level.heartItems) {
+      level.heartItems.forEach((h, idx) => {
+        if (h.collected) return;
+        const pulse = 1 + Math.sin(time * 5 + idx) * 0.1;
+        const bob = Math.cos(time * 4 + idx) * 3.5;
+        ctx.save();
+        ctx.translate(h.x, h.y + bob);
+
+        // Vầng sáng hồng ấm
+        const hg = ctx.createRadialGradient(0, 0, 2, 0, 0, 24);
+        hg.addColorStop(0, 'rgba(244, 63, 94, 0.78)');
+        hg.addColorStop(1, 'rgba(244, 63, 94, 0)');
+        ctx.fillStyle = hg;
+        ctx.beginPath();
+        ctx.arc(0, 0, 24, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.scale(pulse, pulse);
+        this.drawHeartShape(ctx, 0, 0, 25, '#f43f5e', '#ffe4e6');
+
+        // Dấu cộng trắng nhỏ giữa tim
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-1.5, -4.5, 3, 7);
+        ctx.fillRect(-3.5, -2.5, 7, 3);
+        ctx.restore();
+      });
+    }
+
+    // 3. Vẽ Kho Máu Phụ (+1 Tim)
+    if (level.chest && !level.chest.collected) {
+      const ch = level.chest;
+      const bob = Math.sin(time * 3) * 2.5;
+      ctx.save();
+      ctx.translate(ch.x, ch.y + bob);
+
+      // Bóng và hào quang hồi máu
+      const cg = ctx.createRadialGradient(0, 0, 4, 0, 0, 30);
+      cg.addColorStop(0, 'rgba(244, 63, 94, 0.65)');
+      cg.addColorStop(1, 'rgba(244, 63, 94, 0)');
+      ctx.fillStyle = cg;
+      ctx.beginPath();
+      ctx.arc(0, 0, 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Thân rương kho máu
+      ctx.fillStyle = '#e11d48';
+      ctx.strokeStyle = '#fde047';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(-16, -12, 32, 24, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Dải viền vàng nắp rương
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(-16, -3, 32, 4);
+
+      // Biểu tượng chữ thập trắng cứu trợ ở tâm rương
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-2.5, -7, 5, 14);
+      ctx.fillRect(-7, -2.5, 14, 5);
+
+      // Nhãn nổi "Kho máu (+1 Tim)"
+      ctx.font = 'bold 11.5px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fecdd3';
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 3.2;
+      ctx.strokeText('Kho máu (+1 Tim)', 0, -18);
+      ctx.fillText('Kho máu (+1 Tim)', 0, -18);
+      ctx.restore();
+    }
+
+    // 4. Vẽ Vật phẩm Thích nghi Khí hậu
+    const item = level.climateItem;
+    if (item && !item.collected) {
+      const bob = Math.sin(time * 3.5) * 4;
+      ctx.save();
+      ctx.translate(item.x, item.y + bob);
+
+      const aura = ctx.createRadialGradient(0, 0, 5, 0, 0, 32);
+      aura.addColorStop(0, 'rgba(250, 204, 21, 0.85)');
+      aura.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(0, 0, 32, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      this.drawClimateItemVector(ctx, item.type, 0, 0, 0.95);
+
+      ctx.font = 'bold 12.5px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fef08a';
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 3.5;
+      ctx.strokeText(item.name, 0, -25);
+      ctx.fillText(item.name, 0, -25);
+
+      ctx.restore();
+    }
+  }
+
+  drawClimateItemVector(ctx, type, x, y, scale = 1) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    if (type === 'coat_warm') {
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.moveTo(-10, -9);
+      ctx.lineTo(10, -9);
+      ctx.lineTo(14, 4);
+      ctx.lineTo(9, 6);
+      ctx.lineTo(8, 12);
+      ctx.lineTo(-8, 12);
+      ctx.lineTo(-9, 6);
+      ctx.lineTo(-14, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#e0f2fe';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, -8, 6, 0, Math.PI);
+      ctx.stroke();
+    } else if (type === 'jacket_light') {
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.moveTo(-9, -8);
+      ctx.lineTo(9, -8);
+      ctx.lineTo(13, 5);
+      ctx.lineTo(8, 11);
+      ctx.lineTo(-8, 11);
+      ctx.lineTo(-13, 5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-7, -9, 14, 5);
+      ctx.fillRect(2, -6, 4, 10);
+    } else if (type === 'raincoat') {
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(0, -13);
+      ctx.lineTo(11, -5);
+      ctx.lineTo(13, 11);
+      ctx.lineTo(-13, 11);
+      ctx.lineTo(-11, -5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ca8a04';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else if (type === 'water_bottle') {
+      ctx.fillStyle = '#38bdf8';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(-9, -6, 18, 18, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(-4, -12, 8, 5);
+    }
+    ctx.restore();
+  }
+
+  drawExitGate(ctx, gate, isUnlocked, time) {
+    ctx.save();
+    ctx.translate(gate.x, gate.y);
+
+    ctx.fillStyle = '#334155';
+    ctx.strokeStyle = isUnlocked ? '#fbbf24' : '#64748b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 32, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    if (isUnlocked) {
+      const pGrad = ctx.createRadialGradient(0, -4, 3, 0, -4, 28);
+      pGrad.addColorStop(0, '#ffffff');
+      pGrad.addColorStop(0.4, gate.isTreasureGate ? '#fde047' : '#38bdf8');
+      pGrad.addColorStop(1, 'rgba(168, 85, 247, 0.1)');
+      ctx.fillStyle = pGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, -4, 21 + Math.sin(time * 6) * 2, 26 + Math.cos(time * 6) * 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+      ctx.beginPath();
+      ctx.ellipse(0, -4, 20, 24, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = isUnlocked ? '#fbbf24' : '#94a3b8';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.arc(0, -3, 22, Math.PI, 0);
+    ctx.lineTo(22, 14);
+    ctx.moveTo(-22, -3);
+    ctx.lineTo(-22, 14);
+    ctx.stroke();
+
+    ctx.font = 'bold 12px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = isUnlocked ? '#4ade80' : '#fda4af';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3.5;
+    const label = isUnlocked
+      ? (gate.isTreasureGate ? 'CỔNG KHO BÁU MỞ!' : 'CỔNG ĐÃ MỞ!')
+      : 'CỔNG KHÓA';
+    ctx.strokeText(label, 0, -32);
+    ctx.fillText(label, 0, -32);
+
+    ctx.restore();
+  }
+}
+
+/* ============================================================================
+ * 6. PLAYER CLASS (Strict Corridor Tile Collision + Corner Slide Assist)
+ * ============================================================================ */
+class Player {
+  constructor() {
+    this.resetForStage(120, 360);
+  }
+
+  resetForStage(x, y) {
+    this.x = x;
+    this.y = y;
+    this.vx = 0;
+    this.vy = 0;
+    this.r = 17;
+    this.baseSpeed = 230;
+    this.facing = 'down';
+    this.isMoving = false;
+    this.walkTimer = 0;
+    this.idleTimer = 0;
+
+    this.hearts = 3;
+    this.baseMaxHearts = 3;
+    this.maxHeartCap = 5; // Cho phép cộng dồn tối đa 5 tim nếu nhặt Kho máu / Tim khi đang đầy máu
+    this.invincibleTimer = 0;
+    this.celebrateTimer = 0;
+
+    this.equippedItem = null;
+    this.onIce = false;
+    this.isShivering = false;
+    this.isThirsty = false;
+    this.isSlowed = false;
+    this.statusLabel = '';
+  }
+
+  healOneHeart() {
+    if (this.hearts < this.maxHeartCap) {
+      this.hearts += 1;
+      return true;
+    }
+    return false;
+  }
+
+  takeDamage(audio) {
+    if (this.invincibleTimer > 0) return false;
+    this.hearts = Math.max(0, this.hearts - 1);
+    this.invincibleTimer = 1.5;
+    if (audio) audio.playHurt();
+    return true;
+  }
+
+  update(dt, inputVec, level, particles) {
+    this.idleTimer += dt;
+    if (this.invincibleTimer > 0) this.invincibleTimer = Math.max(0, this.invincibleTimer - dt);
+    if (this.celebrateTimer > 0) this.celebrateTimer = Math.max(0, this.celebrateTimer - dt);
+
+    const col = Math.max(0, Math.min(GRID_COLS - 1, Math.floor(this.x / TILE_SIZE)));
+    const row = Math.max(0, Math.min(GRID_ROWS - 1, Math.floor(this.y / TILE_SIZE)));
+    const currentTile = level.grid[row][col];
+
+    this.onIce = false;
+    this.isShivering = false;
+    this.isThirsty = false;
+    this.isSlowed = false;
+    this.statusLabel = '';
+
+    let speedMult = 1.0;
+
+    if (currentTile === TILE.ICE) {
+      this.onIce = true;
+      this.statusLabel = 'Băng trơn!';
+    } else if (currentTile === TILE.SLOW) {
+      this.isSlowed = true;
+      speedMult = 0.58;
+      this.statusLabel = level.biome === 'tropical' ? 'Vũng nước làm chậm!' : 'Cát sâu làm chậm!';
+    } else if (currentTile === TILE.CLIMATE_ZONE) {
+      if (level.biome === 'snow' && this.equippedItem !== 'coat_warm') {
+        this.isShivering = true;
+        speedMult = 0.75;
+        this.statusLabel = 'Lạnh quá! Cần Áo ấm';
+      } else if (level.biome === 'autumn' && this.equippedItem !== 'jacket_light') {
+        this.isShivering = true;
+        speedMult = 0.76;
+        this.statusLabel = 'Gió thu lạnh! Cần Áo khoác nhẹ';
+      } else if (level.biome === 'tropical' && this.equippedItem !== 'raincoat') {
+        this.isSlowed = true;
+        speedMult = 0.76;
+        this.statusLabel = 'Mưa ướt! Cần Áo mưa';
+      } else if (level.biome === 'desert' && this.equippedItem !== 'water_bottle') {
+        this.isThirsty = true;
+        this.statusLabel = 'Khát nước! Cần tìm Bình nước';
+      }
+    }
+
+    if (level.biome === 'tropical' && this.equippedItem !== 'raincoat') {
+      speedMult = Math.min(speedMult, 0.86);
+    }
+
+    const targetVx = inputVec.x * this.baseSpeed * speedMult;
+    const targetVy = inputVec.y * this.baseSpeed * speedMult;
+
+    if (this.onIce) {
+      const lerp = 3.2 * dt;
+      this.vx += (targetVx * 1.15 - this.vx) * lerp;
+      this.vy += (targetVy * 1.15 - this.vy) * lerp;
+    } else {
+      this.vx = targetVx;
+      this.vy = targetVy;
+    }
+
+    this.isMoving = Math.hypot(inputVec.x, inputVec.y) > 0.05;
+    if (this.isMoving) {
+      this.walkTimer += dt * 10;
+      if (Math.abs(inputVec.x) > Math.abs(inputVec.y)) {
+        this.facing = inputVec.x > 0 ? 'right' : 'left';
+      } else {
+        this.facing = inputVec.y > 0 ? 'down' : 'up';
+      }
+      if (Math.random() < 0.22 && particles) {
+        particles.spawnFootstep(this.x, this.y);
+      }
+    } else {
+      this.walkTimer = 0;
+    }
+
+    // Tự động căn tâm đường mòn ngang-dọc để rẽ ở ngã ba/ngã tư dễ dàng
+    const center = cellCenter(col, row);
+    const alignSpeed = 150 * dt;
+    if (inputVec.rawX !== 0 && inputVec.rawY === 0) {
+      const diffY = center.y - this.y;
+      if (Math.abs(diffY) < 26) {
+        this.y += Math.sign(diffY) * Math.min(Math.abs(diffY), alignSpeed);
+      }
+    } else if (inputVec.rawY !== 0 && inputVec.rawX === 0) {
+      const diffX = center.x - this.x;
+      if (Math.abs(diffX) < 26) {
+        this.x += Math.sign(diffX) * Math.min(Math.abs(diffX), alignSpeed);
+      }
+    }
+
+    this.moveInWalkableGrid(this.vx * dt, this.vy * dt, level.grid);
+  }
+
+  moveInWalkableGrid(dx, dy, grid) {
+    this.x += dx;
+    this.resolveGridWallCollisions(grid);
+
+    this.y += dy;
+    this.resolveGridWallCollisions(grid);
+  }
+
+  resolveGridWallCollisions(grid) {
+    const pCol = Math.floor(this.x / TILE_SIZE);
+    const pRow = Math.floor(this.y / TILE_SIZE);
+
+    for (let r = pRow - 1; r <= pRow + 1; r++) {
+      for (let c = pCol - 1; c <= pCol + 1; c++) {
+        const isWall = (
+          r < 0 || r >= GRID_ROWS ||
+          c < 0 || c >= GRID_COLS ||
+          grid[r][c] === TILE.WALL
+        );
+        if (!isWall) continue;
+
+        const boxX = c * TILE_SIZE;
+        const boxY = r * TILE_SIZE;
+        const closestX = Math.max(boxX, Math.min(this.x, boxX + TILE_SIZE));
+        const closestY = Math.max(boxY, Math.min(this.y, boxY + TILE_SIZE));
+
+        const distX = this.x - closestX;
+        const distY = this.y - closestY;
+        const distSq = distX * distX + distY * distY;
+
+        if (distSq < this.r * this.r) {
+          const dist = Math.sqrt(distSq);
+          if (dist > 0.0001) {
+            const overlap = this.r - dist;
+            this.x += (distX / dist) * overlap;
+            this.y += (distY / dist) * overlap;
+          } else {
+            const tileCenterX = boxX + TILE_SIZE / 2;
+            const tileCenterY = boxY + TILE_SIZE / 2;
+            if (Math.abs(this.x - tileCenterX) > Math.abs(this.y - tileCenterY)) {
+              this.x += this.x > tileCenterX ? this.r : -this.r;
+            } else {
+              this.y += this.y > tileCenterY ? this.r : -this.r;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    if (this.invincibleTimer > 0 && Math.floor(this.invincibleTimer * 12) % 2 === 0) {
+      ctx.globalAlpha = 0.5;
+    }
+
+    const shiverX = this.isShivering ? Math.sin(this.idleTimer * 35) * 1.8 : 0;
+    const bounceY = this.celebrateTimer > 0
+      ? -Math.abs(Math.sin(this.idleTimer * 12)) * 10
+      : this.isMoving
+        ? -Math.abs(Math.sin(this.walkTimer)) * 3.5
+        : Math.sin(this.idleTimer * 3) * 1.2;
+
+    ctx.translate(this.x + shiverX, this.y);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
+    ctx.beginPath();
+    ctx.ellipse(0, 17, 15, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.translate(0, bounceY);
+
+    if (this.facing !== 'up') {
+      const bpX = this.facing === 'left' ? 8 : this.facing === 'right' ? -8 : 0;
+      ctx.fillStyle = '#b45309';
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(bpX - 9, -6, 18, 16, 5);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    const legSwing = this.isMoving ? Math.sin(this.walkTimer) * 5 : 0;
+    ctx.fillStyle = '#78350f';
+    ctx.beginPath();
+    ctx.arc(-5, 13 + legSwing, 4.5, 0, Math.PI * 2);
+    ctx.arc(5, 13 - legSwing, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#a16207';
+    ctx.fillRect(-8, 5, 16, 7);
+
+    let shirtColor = '#14b8a6';
+    if (this.equippedItem === 'coat_warm') shirtColor = '#0284c7';
+    if (this.equippedItem === 'jacket_light') shirtColor = '#f59e0b';
+    if (this.equippedItem === 'raincoat') shirtColor = '#facc15';
+
+    ctx.fillStyle = shirtColor;
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(-11, -7, 22, 15, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    if (this.equippedItem === 'coat_warm') {
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(-9, -6);
+      ctx.lineTo(9, -6);
+      ctx.stroke();
+    } else if (this.equippedItem === 'jacket_light') {
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-9, -7, 18, 4.5);
+      ctx.fillRect(3, -5, 4.5, 9);
+    } else if (this.equippedItem === 'water_bottle') {
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-8, -6);
+      ctx.lineTo(8, 7);
+      ctx.stroke();
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(9, 5, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (this.facing === 'up') {
+      ctx.fillStyle = '#d97706';
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(-9, -6, 18, 15, 4);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#fed7aa';
+    ctx.strokeStyle = '#451a03';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, -15, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    if (this.facing !== 'up') {
+      const eyeOffsetX = this.facing === 'left' ? -3 : this.facing === 'right' ? 3 : 0;
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.35)';
+      ctx.beginPath();
+      ctx.arc(-5 + eyeOffsetX, -13, 2.2, 0, Math.PI * 2);
+      ctx.arc(5 + eyeOffsetX, -13, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      if (this.invincibleTimer > 1.1) {
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('><', eyeOffsetX, -14);
+      } else {
+        ctx.beginPath();
+        ctx.arc(-3.5 + eyeOffsetX, -16, 1.7, 0, Math.PI * 2);
+        ctx.arc(3.5 + eyeOffsetX, -16, 1.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(eyeOffsetX, -13, 3, 0.15 * Math.PI, 0.85 * Math.PI);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = this.equippedItem === 'raincoat' ? '#facc15' : '#eab308';
+    ctx.strokeStyle = '#713f12';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, -23, 15, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, -24, 9.5, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#0d9488';
+    ctx.fillRect(-8, -25, 16, 2.5);
+
+    if (this.statusLabel) {
+      ctx.font = 'bold 12px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      const w = ctx.measureText(this.statusLabel).width + 14;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      ctx.strokeStyle = this.isThirsty ? '#fb923c' : '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(-w / 2, -52, w, 20, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(this.statusLabel, 0, -38);
+    }
+
+    ctx.restore();
+  }
+}
+
+/* ============================================================================
+ * 7. MAIN GAME ENGINE & UI CONTROLLER
+ * ============================================================================ */
+class GameEngine {
+  constructor() {
+    this.canvas = document.getElementById('gameCanvas');
+    this.ctx = this.canvas.getContext('2d');
+
+    this.audio = new AudioManager();
+    this.input = new InputManager(() => this.togglePause());
+    this.particles = new ParticleSystem();
+    this.levelManager = new LevelManager();
+    this.worldRenderer = new WorldRenderer();
+    this.player = new Player();
+
+    this.state = GAME_STATE.MENU;
+    this.currentStageIdx = 0;
+    this.activeLevel = null;
+
+    this.stageDiamonds = 0;
+    this.totalDiamondsAllStages = 0;
+    this.totalChestsAllStages = 0;
+    this.gateUnlocked = false;
+    this.gateTouchCooldown = 0;
+    this.elapsedTime = 0;
+    this.lastFrameTime = performance.now();
+
+    this.bindUIEvents();
+    this.loadStageData(0);
+
+    requestAnimationFrame((t) => this.loop(t));
+  }
+
+  bindUIEvents() {
+    const bindBtn = (id, handler) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        handler();
+      });
+    };
+
+    bindBtn('btn-start-game', () => {
+      this.audio.init();
+      this.audio.playClick();
+      this.startNewGame();
+    });
+
+    bindBtn('btn-open-tutorial', () => {
+      this.audio.init();
+      this.audio.playClick();
+      this.showScreen(GAME_STATE.TUTORIAL);
+    });
+
+    bindBtn('btn-tutorial-play', () => {
+      this.audio.init();
+      this.audio.playClick();
+      this.startNewGame();
+    });
+
+    bindBtn('btn-tutorial-back', () => {
+      this.audio.init();
+      this.audio.playClick();
+      this.showScreen(GAME_STATE.MENU);
+    });
+
+    const toggleSoundUI = () => {
+      const on = this.audio.toggle();
+      const menuBtn = document.getElementById('btn-menu-sound');
+      const hudBtn = document.getElementById('btn-hud-sound');
+      if (menuBtn) menuBtn.textContent = `ÂM THANH: ${on ? 'BẬT' : 'TẮT'}`;
+      if (hudBtn) hudBtn.style.opacity = on ? '1' : '0.45';
+    };
+
+    bindBtn('btn-menu-sound', toggleSoundUI);
+    bindBtn('btn-hud-sound', toggleSoundUI);
+
+    bindBtn('btn-hud-pause', () => this.togglePause());
+    bindBtn('btn-resume', () => this.togglePause());
+
+    bindBtn('btn-pause-restart', () => {
+      this.audio.playClick();
+      this.restartCurrentStage();
+    });
+
+    bindBtn('btn-pause-menu', () => {
+      this.audio.playClick();
+      this.showScreen(GAME_STATE.MENU);
+    });
+
+    bindBtn('btn-next-stage', () => {
+      this.audio.playClick();
+      if (this.currentStageIdx + 1 < this.levelManager.levels.length) {
+        this.currentStageIdx++;
+        this.loadStageData(this.currentStageIdx);
+        this.showScreen(GAME_STATE.PLAYING);
+      } else {
+        this.showVictory();
+      }
+    });
+
+    bindBtn('btn-retry-stage', () => {
+      this.audio.playClick();
+      this.restartCurrentStage();
+    });
+
+    bindBtn('btn-play-again', () => {
+      this.audio.playClick();
+      this.startNewGame();
+    });
+  }
+
+  showScreen(newState) {
+    this.state = newState;
+    this.input.clearAll();
+    this.input.enabled = (newState === GAME_STATE.PLAYING);
+
+    const screens = {
+      [GAME_STATE.MENU]: 'screen-menu',
+      [GAME_STATE.TUTORIAL]: 'screen-tutorial',
+      [GAME_STATE.PAUSED]: 'screen-pause',
+      [GAME_STATE.LEVEL_COMPLETE]: 'screen-level-complete',
+      [GAME_STATE.GAME_OVER]: 'screen-gameover',
+      [GAME_STATE.VICTORY]: 'screen-victory'
+    };
+
+    Object.values(screens).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+
+    if (screens[newState]) {
+      const target = document.getElementById(screens[newState]);
+      if (target) target.classList.remove('hidden');
+    }
+
+    const hud = document.getElementById('hud');
+    const touchCtrl = document.getElementById('touch-controls');
+    if (newState === GAME_STATE.PLAYING) {
+      hud.classList.remove('hidden');
+      touchCtrl.classList.add('active-play');
+    } else {
+      touchCtrl.classList.remove('active-play');
+      if (newState === GAME_STATE.MENU || newState === GAME_STATE.TUTORIAL) {
+        hud.classList.add('hidden');
+      }
+    }
+  }
+
+  togglePause() {
+    if (this.state === GAME_STATE.PLAYING) {
+      this.audio.playClick();
+      this.showScreen(GAME_STATE.PAUSED);
+    } else if (this.state === GAME_STATE.PAUSED) {
+      this.audio.playClick();
+      this.showScreen(GAME_STATE.PLAYING);
+    }
+  }
+
+  startNewGame() {
+    this.currentStageIdx = 0;
+    this.totalDiamondsAllStages = 0;
+    this.totalChestsAllStages = 0;
+    this.loadStageData(0);
+    this.showScreen(GAME_STATE.PLAYING);
+  }
+
+  restartCurrentStage() {
+    this.loadStageData(this.currentStageIdx);
+    this.showScreen(GAME_STATE.PLAYING);
+  }
+
+  loadStageData(stageIdx) {
+    const raw = this.levelManager.levels[stageIdx];
+    const copy = JSON.parse(JSON.stringify(raw));
+
+    const spawnPos = cellCenter(copy.spawnCell.c, copy.spawnCell.r);
+    const gatePos = cellCenter(copy.gateCell.c, copy.gateCell.r);
+    const itemPos = cellCenter(copy.climateItemCell.c, copy.climateItemCell.r);
+    const chestPos = cellCenter(copy.chestCell.c, copy.chestCell.r);
+
+    copy.spawn = spawnPos;
+    copy.gate = { x: gatePos.x, y: gatePos.y, r: 30, isTreasureGate: copy.gateCell.isTreasureGate };
+    copy.climateItem = {
+      x: itemPos.x,
+      y: itemPos.y,
+      r: 22,
+      type: copy.climateItemCell.type,
+      name: copy.climateItemCell.name,
+      collected: false
+    };
+    copy.chest = { x: chestPos.x, y: chestPos.y, r: 22, collected: false };
+    copy.diamonds = copy.diamondCells.map(dc => {
+      const p = cellCenter(dc.c, dc.r);
+      return { x: p.x, y: p.y, r: 18, collected: false };
+    });
+    copy.heartItems = (copy.heartCells || []).map(hc => {
+      const p = cellCenter(hc.c, hc.r);
+      return { x: p.x, y: p.y, r: 18, collected: false };
+    });
+
+    this.activeLevel = copy;
+    this.player.resetForStage(copy.spawn.x, copy.spawn.y);
+    this.particles.initBiome(copy.biome);
+
+    this.stageDiamonds = 0;
+    this.gateUnlocked = false;
+    this.gateTouchCooldown = 0;
+
+    this.updateHUD();
+    this.showToast(`Bắt đầu ${copy.name}!`);
+  }
+
+  showToast(msg, duration = 2600) {
+    const banner = document.getElementById('toast-banner');
+    if (!banner) return;
+    banner.textContent = msg;
+    banner.classList.add('show');
+    clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => {
+      banner.classList.remove('show');
+    }, duration);
+  }
+
+  updateHUD() {
+    const heartsBox = document.getElementById('hud-hearts');
+    heartsBox.innerHTML = '';
+    const displaySlots = Math.max(this.player.baseMaxHearts, this.player.hearts);
+    for (let i = 0; i < displaySlots; i++) {
+      const lost = i >= this.player.hearts ? 'lost' : '';
+      const isBonus = i >= this.player.baseMaxHearts ? 'bonus' : '';
+      const fillCol = i >= this.player.baseMaxHearts ? '#fbbf24' : '#f43f5e';
+      heartsBox.innerHTML += `
+        <svg class="heart-svg ${lost} ${isBonus}" viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                fill="${fillCol}" stroke="#ffe4e6" stroke-width="1.5"/>
+        </svg>`;
+    }
+
+    document.getElementById('hud-diamonds').textContent = `${this.stageDiamonds}/2`;
+    const bonusEl = document.getElementById('hud-bonus-diamonds');
+    bonusEl.textContent = this.stageDiamonds > 2 ? `(+${this.stageDiamonds - 2} thưởng)` : '';
+
+    const badge = document.getElementById('hud-item-badge');
+    const txt = document.getElementById('hud-item-text');
+    if (this.player.equippedItem) {
+      badge.classList.add('collected');
+      txt.textContent = `Đã có: ${this.activeLevel.itemName}`;
+    } else {
+      badge.classList.remove('collected');
+      txt.textContent = `Cần tìm: ${this.activeLevel.itemName}`;
+    }
+
+    const steps = document.querySelectorAll('#hud-stages .stage-step');
+    steps.forEach((el, idx) => {
+      el.classList.remove('active', 'done');
+      if (idx < this.currentStageIdx) el.classList.add('done');
+      else if (idx === this.currentStageIdx) el.classList.add('active');
+    });
+  }
+
+  checkGateUnlockCondition() {
+    if (!this.gateUnlocked && this.stageDiamonds >= 2 && this.player.equippedItem) {
+      this.gateUnlocked = true;
+      this.audio.playGateUnlock();
+      this.particles.spawnSparkles(this.activeLevel.gate.x, this.activeLevel.gate.y, '#fbbf24', 28);
+      this.showToast('Cổng đã mở! Hãy đi theo đường mòn tới cánh cổng!', 3200);
+    }
+  }
+
+  updateGameplay(dt) {
+    if (this.gateTouchCooldown > 0) this.gateTouchCooldown -= dt;
+
+    const moveVec = this.input.getMovementVector();
+    this.player.update(dt, moveVec, this.activeLevel, this.particles);
+
+    // 1. Va chạm bẫy
+    for (const hz of this.activeLevel.hazards) {
+      if (hz.ax !== undefined) {
+        const t = (Math.sin(this.elapsedTime * hz.speed) + 1) * 0.5;
+        hz.x = hz.ax + (hz.bx - hz.ax) * t;
+        hz.y = hz.ay + (hz.by - hz.ay) * t;
+      }
+
+      const dist = Math.hypot(this.player.x - hz.x, this.player.y - hz.y);
+      if (dist < this.player.r + hz.r - 4) {
+        const damaged = this.player.takeDamage(this.audio);
+        if (damaged) {
+          this.particles.spawnSparkles(this.player.x, this.player.y, '#f43f5e', 14);
+          this.updateHUD();
+          if (this.player.hearts <= 0) {
+            this.showScreen(GAME_STATE.GAME_OVER);
+            return;
+          }
+        }
+      }
+    }
+
+    // 2. Nhặt Kim cương
+    for (const d of this.activeLevel.diamonds) {
+      if (!d.collected) {
+        const dist = Math.hypot(this.player.x - d.x, this.player.y - d.y);
+        if (dist < this.player.r + d.r) {
+          d.collected = true;
+          this.stageDiamonds++;
+          this.player.celebrateTimer = 0.35;
+          this.audio.playDiamond();
+          this.particles.spawnSparkles(d.x, d.y, '#38bdf8', 20);
+          this.updateHUD();
+          this.checkGateUnlockCondition();
+        }
+      }
+    }
+
+    // 3. Nhặt Vật phẩm hồi phục mạng (Trái tim năng lượng trên đường)
+    if (this.activeLevel.heartItems) {
+      for (const h of this.activeLevel.heartItems) {
+        if (!h.collected) {
+          const dist = Math.hypot(this.player.x - h.x, this.player.y - h.y);
+          if (dist < this.player.r + h.r) {
+            h.collected = true;
+            this.player.healOneHeart();
+            this.player.celebrateTimer = 0.4;
+            this.audio.playHeal();
+            this.particles.spawnHealEffect(h.x, h.y);
+            this.updateHUD();
+            this.showToast('Đã nhặt Trái tim năng lượng! Hồi phục +1 Mạng!');
+          }
+        }
+      }
+    }
+
+    // 4. Nhặt Kho Máu Phụ (+1 Tim)
+    const ch = this.activeLevel.chest;
+    if (ch && !ch.collected) {
+      const dist = Math.hypot(this.player.x - ch.x, this.player.y - ch.y);
+      if (dist < this.player.r + ch.r) {
+        ch.collected = true;
+        this.totalChestsAllStages++;
+        this.player.healOneHeart();
+        this.player.celebrateTimer = 0.5;
+        this.audio.playHeal();
+        this.particles.spawnHealEffect(ch.x, ch.y);
+        this.updateHUD();
+        this.showToast('Mở Kho Máu Phụ! Hồi phục +1 Mạng!');
+      }
+    }
+
+    // 5. Nhặt Vật phẩm thích nghi khí hậu
+    const item = this.activeLevel.climateItem;
+    if (item && !item.collected) {
+      const dist = Math.hypot(this.player.x - item.x, this.player.y - item.y);
+      if (dist < this.player.r + item.r) {
+        item.collected = true;
+        this.player.equippedItem = item.type;
+        this.player.celebrateTimer = 0.6;
+        this.audio.playClimateItem();
+
+        if (item.type === 'water_bottle') {
+          this.particles.spawnWaterDrinkEffect(this.player.x, this.player.y);
+          this.player.healOneHeart();
+          this.showToast('Đã uống nước mát! Hồi phục +1 Mạng!');
+        } else {
+          this.particles.spawnSparkles(item.x, item.y, '#4ade80', 24);
+          this.showToast(`Đã trang bị ${item.name}!`);
+        }
+
+        this.updateHUD();
+        this.checkGateUnlockCondition();
+      }
+    }
+
+    // 6. Cổng qua màn
+    const gate = this.activeLevel.gate;
+    const distGate = Math.hypot(this.player.x - gate.x, this.player.y - gate.y);
+    if (distGate < this.player.r + gate.r * 0.8) {
+      if (this.gateUnlocked) {
+        this.totalDiamondsAllStages += this.stageDiamonds;
+        if (this.currentStageIdx === this.levelManager.levels.length - 1) {
+          this.showVictory();
+        } else {
+          this.showLevelComplete();
+        }
+      } else if (this.gateTouchCooldown <= 0) {
+        this.gateTouchCooldown = 1.8;
+        const missing = [];
+        if (this.stageDiamonds < 2) {
+          missing.push(`thêm ${2 - this.stageDiamonds} Kim cương`);
+        }
+        if (!this.player.equippedItem) {
+          missing.push(this.activeLevel.itemName);
+        }
+        this.showToast(`Cổng đang khóa! Cần tìm: ${missing.join(' và ')}`, 2800);
+      }
+    }
+  }
+
+  showLevelComplete() {
+    this.audio.playStageClear();
+    document.getElementById('lc-stage-badge').textContent = `HOÀN THÀNH CHẶNG ${this.activeLevel.id} / 4`;
+    document.getElementById('lc-title').textContent = `VƯỢT QUA ${this.activeLevel.name.split(': ')[1]}!`;
+    document.getElementById('lc-stats').textContent =
+      `Kim cương thu thập: ${this.stageDiamonds}/4 • Đã trang bị: ${this.activeLevel.itemName}`;
+    document.getElementById('lc-knowledge').textContent = `"${this.activeLevel.knowledge}"`;
+    this.showScreen(GAME_STATE.LEVEL_COMPLETE);
+  }
+
+  showVictory() {
+    this.audio.playVictory();
+    this.player.celebrateTimer = 999;
+    document.getElementById('vic-diamonds').textContent = `${this.totalDiamondsAllStages} / 16`;
+    document.getElementById('vic-chests').textContent = `${this.totalChestsAllStages} / 4`;
+    this.showScreen(GAME_STATE.VICTORY);
+  }
+
+  render() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+    if (!this.activeLevel) return;
+
+    const bg = this.worldRenderer.getBackgroundCanvas(this.activeLevel);
+    ctx.drawImage(bg, 0, 0);
+
+    this.worldRenderer.drawSpecialRoadTiles(ctx, this.activeLevel, this.elapsedTime);
+    this.particles.drawGroundRipples(ctx);
+    this.worldRenderer.drawExitGate(ctx, this.activeLevel.gate, this.gateUnlocked, this.elapsedTime);
+    this.worldRenderer.drawCollectibles(ctx, this.activeLevel, this.elapsedTime);
+
+    for (const hz of this.activeLevel.hazards) {
+      this.worldRenderer.drawHazard(ctx, hz, this.elapsedTime);
+    }
+
+    this.player.draw(ctx);
+
+    const decors = this.worldRenderer.getDecorations(this.activeLevel);
+    for (const ob of decors) {
+      this.worldRenderer.drawTreeCanopy(ctx, ob);
+    }
+
+    this.particles.drawFX(ctx);
+    this.particles.drawWeatherOverlay(ctx);
+  }
+
+  loop(now) {
+    const dt = Math.min(0.05, (now - this.lastFrameTime) / 1000);
+    this.lastFrameTime = now;
+    this.elapsedTime += dt;
+
+    this.particles.update(dt);
+    if (this.state === GAME_STATE.PLAYING) {
+      this.updateGameplay(dt);
+    }
+
+    this.render();
+    requestAnimationFrame((t) => this.loop(t));
+  }
+}
+
+function bootGame() {
+  if (!window.climateGame) {
+    window.climateGame = new GameEngine();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootGame);
+} else {
+  bootGame();
+}
+</script>
+</body>
+</html>

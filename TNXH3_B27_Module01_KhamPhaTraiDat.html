@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>YooBook | Bài 27 – Khám phá Trái Đất</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+<script type="importmap">{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}</script>
+
+<style>
+/* =====================================================================
+   YOOBOOK DESIGN SYSTEM (giữ nguyên từ template)
+   ===================================================================== */
+:root{
+  --brand:#195856; --brand-dark:#0f3f3d; --brand-light:#2f827d; --brand-soft:#e6f0ee;
+  --ink:#10302d; --muted:#5f8b89; --line:#dbe8e5; --bg:#eaf3f1; --gold:#a8814a;
+  --stage-mid:#f1f9f7; --stage-bottom:#dcebe7;
+  --r:16px; --r-sm:11px;
+  --sh-1:0 1px 2px rgba(13,42,40,.05);
+  --sh-2:0 2px 6px rgba(13,42,40,.06),0 18px 34px -22px rgba(13,42,40,.45);
+  --sh-3:0 10px 30px -12px rgba(13,42,40,.32);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:'Roboto',system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:15px;line-height:1.5;color:var(--ink);background:#195658;
+  overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit}
+.app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{
+  display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;
+  border-bottom:1px solid var(--line);box-shadow:var(--sh-1);z-index:20;flex:0 0 auto;
+}
+.logoclip{height:27px;display:flex;align-items:center;flex:0 0 auto}
+.logo{height:27px;display:block}
+.titles{flex:1;min-width:0}
+.badge{
+  display:inline-block;max-width:100%;font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--brand);
+  background:var(--brand-soft);border-radius:99px;padding:2px 9px;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;
+}
+.titles h1{margin:0;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.titles h1.lg{font-size:18px} .titles h1.sm{font-size:15px;display:none} .titles h1.xs{font-size:13px;display:none}
+@media (max-width:620px){.titles h1.lg{display:none}.titles h1.sm{display:block}}
+@media (max-width:390px){.titles h1.sm{display:none}.titles h1.xs{display:block}}
+.tb-right{display:flex;gap:8px;flex:0 0 auto}
+.tb-btn{
+  width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark);
+}
+.tb-btn:hover{background:var(--brand-soft);border-color:var(--brand-light)}
+.main{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px;overflow:hidden}
+@media (max-width:920px){.main{padding:10px}}
+.stagecol{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+.frame{background:#fff;border-radius:var(--r);box-shadow:var(--sh-2);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.stage{position:relative;flex:1;min-height:0;background:radial-gradient(ellipse at 30% 35%,#0a2440,transparent 60%),linear-gradient(180deg,#02060f 0%,#061a30 60%,#04121f 100%);touch-action:none;cursor:grab;overflow:hidden}
+.stage.dragging{cursor:grabbing} .stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.stage.busy{cursor:progress}
+.vignette{position:absolute;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 90px rgba(15,63,61,.10)}
+.stage-tools{position:absolute;left:12px;top:12px;z-index:4;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ghost{
+  background:rgba(255,255,255,.90);backdrop-filter:blur(8px) saturate(1.3);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:7px 11px;font-size:12.5px;font-weight:500;color:var(--brand-dark);
+  cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--sh-1);min-height:34px
+}
+.ghost:hover{background:#fff;border-color:var(--brand-light)}
+.ghost[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.stage-hint{
+  position:absolute;left:12px;bottom:12px;z-index:3;background:rgba(255,255,255,.90);backdrop-filter:blur(8px) saturate(1.3);
+  border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:500;color:var(--brand-dark);box-shadow:var(--sh-1);
+  display:flex;align-items:center;gap:6px;max-width:calc(100% - 24px)
+}
+.stage-nav{
+  position:absolute;top:50%;z-index:30;transform:translateY(-50%);width:38px;height:38px;border-radius:99px;
+  border:1px solid var(--line);background:rgba(255,255,255,.88);backdrop-filter:blur(8px) saturate(1.3);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark);box-shadow:var(--sh-1);font-size:16px
+}
+.stage-nav:hover{background:#fff}
+.stage-nav.prev{left:12px} .stage-nav.next{right:12px} .stage-nav[disabled]{opacity:.3;pointer-events:none}
+@media (max-width:920px){.stage-nav{width:34px;height:34px;font-size:14px}}
+.steps{
+  display:flex;gap:8px;padding:10px 12px;overflow-x:auto;overflow-y:hidden;border-top:1px solid var(--line);scrollbar-width:none;flex:0 0 auto
+}
+.steps::-webkit-scrollbar{display:none}
+.step{
+  flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:7px 13px 7px 8px;border-radius:99px;border:1px solid var(--line);
+  background:#fff;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap
+}
+.step:hover{border-color:var(--brand-light)}
+.step b{min-width:22px;height:22px;padding:0 3px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark);font-size:11px;display:flex;align-items:center;justify-content:center}
+.step[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;animation:stepJump .28s ease}
+@keyframes stepJump{0%{transform:scale(.96)}70%{transform:scale(1.035)}100%{transform:scale(1)}}
+.step[aria-pressed="true"] b{background:rgba(255,255,255,.25);color:#fff}
+
+.step.locked{opacity:.5;cursor:not-allowed}
+.step.locked b{background:var(--line)}
+
+/* Loading screen YooBook */
+.intro-loader{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;background:linear-gradient(180deg,rgba(2,13,13,.42),rgba(2,13,13,.68)),linear-gradient(160deg,#0f3f3d 0%,#195658 55%,#123c3a 100%)}
+.intro-loader::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.22) 56%,rgba(0,0,0,.42));pointer-events:none}
+.intro-loader__inner{position:relative;z-index:2;width:min(760px,92vw);display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff}
+.intro-card{width:100%;background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;text-align:center}
+.intro-kicker{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#d6e78c;text-shadow:0 1px 4px rgba(0,0,0,.45)}
+.intro-card h1{font-size:clamp(30px,4.6vw,50px);margin:10px 0 12px;color:#fff;line-height:1.14;font-weight:800;letter-spacing:-.02em;text-shadow:0 4px 18px rgba(0,0,0,.5)}
+.intro-sub{max-width:720px;margin:0 auto 34px;font-size:14px;line-height:1.6;color:rgba(255,255,255,.93);text-shadow:0 2px 8px rgba(0,0,0,.48)}
+.intro-progress{width:min(410px,72vw);height:3px;margin:0 auto 14px;border-radius:99px;background:rgba(255,255,255,.36);overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,.25)}
+.intro-progress span{display:block;height:100%;width:0;background:#d8ff64;box-shadow:0 0 12px rgba(216,255,100,.5);transition:width .25s linear}
+.intro-meta{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:0;font-size:12px;color:rgba(255,255,255,.88)}
+#introStatus{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.ready-dot{width:8px;height:8px;border-radius:99px;background:#d8ff64;display:inline-block;margin-right:7px;box-shadow:0 0 10px rgba(216,255,100,.65)}
+.is-ready .ready-dot{background:#bfffdc}
+.is-error .ready-dot{background:#ffb199;box-shadow:0 0 10px rgba(255,150,120,.65)}
+.intro-time{font-size:12px;color:rgba(255,255,255,.78)}
+.intro-explore{margin:20px auto 0;width:auto;min-width:210px;padding:12px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.34);cursor:pointer;background:rgba(25,88,86,.82);backdrop-filter:blur(10px);color:#fff;font-weight:700;font-size:14px;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .28s ease,transform .28s ease,background .2s}
+.intro-loader.ready .intro-explore{opacity:1;transform:translateY(0);pointer-events:auto}
+.intro-explore:hover{background:rgba(47,130,125,.96)}
+#introEarth{position:absolute;left:50%;top:50%;width:min(88vmin,780px);height:min(88vmin,780px);transform:translate(-50%,-47%);opacity:0;transition:opacity 1.4s ease;z-index:0;pointer-events:none}
+#introEarth.show{opacity:.62}
+.intro-retry{display:none;margin:12px auto 0;padding:9px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+.intro-retry.show{display:inline-block}
+.intro-retry:hover{background:rgba(255,255,255,.24)}
+.intro-credit{margin-top:34px;color:rgba(255,255,255,.86);font-size:12px;text-shadow:0 1px 5px rgba(0,0,0,.45)}
+@media (max-width:620px){.intro-loader{padding:18px}.intro-card h1{font-size:28px}.intro-sub{font-size:13px;margin-bottom:26px}.intro-credit{margin-top:26px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* =====================================================================
+   CSS RIÊNG CỦA MODULE 1 — BÀI 27 · KHÁM PHÁ TRÁI ĐẤT
+   ===================================================================== */
+:root{--bad:#c4513f;--bad-soft:#fbeae6;--north:#4aa8ff;--south:#ff9f43;--gold-bright:#f2c14e}
+.canvas-host{position:absolute;inset:0;z-index:0}
+.tags{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.tag{
+  position:absolute;left:0;top:0;white-space:nowrap;background:#fff;color:var(--brand-dark);font-weight:700;font-size:13px;
+  padding:5px 12px;border-radius:99px;box-shadow:var(--sh-2);opacity:0;transition:opacity .2s;will-change:transform
+}
+.tag.show{opacity:1}
+.tag.gold{background:var(--gold);color:#fff}
+
+/* Vùng nhận nhãn / nhãn bán cầu trên quả địa cầu */
+.zone{
+  position:absolute;left:0;top:0;z-index:4;width:98px;height:98px;border-radius:50%;
+  border:2.5px dashed rgba(255,255,255,.92);background:rgba(255,255,255,.14);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;
+  font-weight:700;font-size:11.5px;line-height:1.15;opacity:0;pointer-events:none;transition:opacity .2s,background .15s,border-color .15s;
+  will-change:transform;touch-action:none;cursor:pointer
+}
+.zone.show{opacity:1;pointer-events:auto}
+.zone .z-q{font-size:26px;line-height:1}
+.zone.north{border-color:#a6d7ff}.zone.south{border-color:#ffc994}
+.zone.over{background:rgba(255,255,255,.38);border-style:solid;border-color:#fff}
+.zone.ready{animation:zonePulse 1.2s ease-in-out infinite}
+@keyframes zonePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}50%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
+.zone.done{
+  width:auto;height:auto;border-radius:99px;border:none;padding:7px 15px;background:#fff;color:var(--brand-dark);
+  box-shadow:var(--sh-2);font-size:13px;pointer-events:none;cursor:default;animation:zonePop .4s ease
+}
+.zone.done .z-l::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+.zone.north.done .z-l::before{background:var(--north)}
+.zone.south.done .z-l::before{background:var(--south)}
+@keyframes zonePop{0%{transform-origin:center;opacity:.2}100%{opacity:1}}
+
+/* Panel nhiệm vụ */
+.panel{
+  display:none;position:absolute;right:58px;top:12px;z-index:6;width:min(320px,calc(100% - 130px));
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px) saturate(1.3);border-radius:var(--r-sm);
+  padding:14px 16px;box-shadow:var(--sh-3);max-height:calc(100% - 70px);overflow:auto
+}
+.panel.show{display:block;animation:panelIn .25s ease}
+@keyframes panelIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.p-kicker{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-dark);background:var(--brand-soft);border-radius:var(--r-sm);padding:7px 11px;margin:0 0 10px}
+.p-foot{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.p-foot b{display:block;font-size:11px;letter-spacing:.06em;color:var(--brand-dark);margin-bottom:2px}
+.p-title{font-size:15px;font-weight:700;color:var(--brand-dark);margin-bottom:6px;line-height:1.35}
+.p-body{margin:0 0 10px;font-size:13.5px;line-height:1.55;color:var(--ink)}
+.panel.compact{width:min(290px,calc(100% - 130px));padding:11px 14px}
+.panel.compact .p-body{font-size:12.5px;margin-bottom:8px}
+.p-actions{display:flex;flex-wrap:wrap;gap:8px}
+.p-actions:empty{display:none}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 20px;border:none;border-radius:99px;
+  font-weight:700;font-size:13.5px;letter-spacing:.02em;cursor:pointer;color:#fff;
+  background:linear-gradient(135deg,var(--brand),var(--brand-light));box-shadow:var(--sh-1);
+  transition:transform .15s,filter .15s,box-shadow .15s
+}
+.btn:hover{filter:brightness(1.08);box-shadow:var(--sh-2)}
+.btn:active{transform:scale(.98)}
+.btn:focus-visible,.opt:focus-visible,.chip:focus-visible{outline:3px solid var(--gold-bright);outline-offset:2px}
+.btn.secondary{background:#fff;color:var(--brand-dark);border:1px solid var(--line)}
+.btn.secondary:hover{background:var(--brand-soft)}
+.btn.is-wait{background:var(--line);color:var(--muted);box-shadow:none}
+.btn.pulse{animation:btnPulse 1.4s ease-in-out infinite}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 0 0 rgba(47,130,125,.5)}50%{box-shadow:0 0 0 9px rgba(47,130,125,0)}}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin:0 0 10px}
+.meter>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-light));border-radius:99px;transition:width .2s}
+
+/* Lựa chọn hình dạng */
+.opts{display:flex;flex-direction:column;gap:8px;margin:0 0 10px}
+.opt{
+  display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:6px 12px;border-radius:var(--r-sm);
+  border:1.5px solid var(--line);background:#fff;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink);text-align:left;position:relative;
+  transition:border-color .15s,background .15s
+}
+.opt:hover:not(:disabled){border-color:var(--brand-light);background:var(--brand-soft)}
+.opt svg{width:46px;height:46px;flex:0 0 auto}
+.opt:disabled{cursor:default}
+.opt.correct{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark)}
+.opt.correct::after{content:"✓";position:absolute;right:12px;width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.fb{font-size:13px;font-weight:600;margin:0 0 10px;line-height:1.45}
+.fb.good{color:var(--brand)} .fb.bad{color:var(--bad)}
+.fb:empty{display:none}
+
+/* Khay nhãn kéo thả */
+.tray{
+  display:none;position:absolute;left:50%;bottom:54px;transform:translateX(-50%);z-index:5;width:min(440px,calc(100% - 130px));
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-radius:var(--r-sm);padding:10px 14px 12px;box-shadow:var(--sh-3);text-align:center
+}
+.tray.show{display:block;animation:panelIn .25s ease}
+.tray-title{font-size:13px;font-weight:700;color:var(--brand-dark);margin-bottom:8px}
+.tray-sub{font-size:11.5px;color:var(--muted);margin-top:6px}
+.chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.chip{
+  min-height:46px;padding:9px 18px;border-radius:99px;border:2px solid var(--line);background:#fff;font-weight:800;font-size:13px;letter-spacing:.02em;
+  color:var(--brand-dark);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transition:border-color .15s,box-shadow .15s,opacity .15s
+}
+.chip.north{border-color:var(--north)} .chip.south{border-color:var(--south)}
+.chip:hover{box-shadow:var(--sh-2)}
+.chip.selected{box-shadow:0 0 0 3px var(--gold-bright);background:#fffbea}
+.chip.dragging{opacity:.35}
+.chip.placed{display:none}
+.chip.wrong-flash{animation:chipNo .4s ease;border-color:var(--bad)}
+@keyframes chipNo{0%,100%{transform:translateX(0)}30%{transform:translateX(-4px)}70%{transform:translateX(4px)}}
+.ghost-chip{
+  position:fixed;left:0;top:0;z-index:100000;pointer-events:none;padding:9px 18px;border-radius:99px;background:#fff;font-weight:800;font-size:13px;
+  color:var(--brand-dark);box-shadow:var(--sh-3);border:2px solid var(--gold-bright);will-change:transform
+}
+
+/* Khay nhãn khi nằm trong panel phải (Step 04) */
+.panel .tray{display:none;position:static;transform:none;width:auto;left:auto;bottom:auto;background:#eef9f6;border-radius:14px;padding:14px 16px 12px;box-shadow:none;text-align:left;backdrop-filter:none;animation:none;margin:2px 0 12px}
+.panel .tray.show{display:block}
+.panel .tray-title{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--brand-dark);margin-bottom:10px}
+.panel .chips{flex-direction:column;gap:12px;justify-content:flex-start}
+.panel .chip{width:100%;min-height:52px;font-size:16px;text-align:left;padding:10px 16px 10px 46px;border-radius:13px;position:relative;background:#fff;color:var(--brand-dark)}
+.panel .chip::before{content:"⋮⋮";position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:18px;letter-spacing:-2px;color:var(--muted)}
+.panel .chip:hover{transform:translateY(-1px)}
+.panel .tray-sub{display:block;margin-top:10px;font-size:14.5px;line-height:1.45;color:var(--muted)}
+.drag-fb{font-size:15.5px;line-height:1.45;font-weight:600;margin:0 0 12px;padding:10px 14px;border-radius:12px}
+.drag-fb:empty{display:none}
+.drag-fb.good{background:var(--brand-soft);color:var(--brand-dark)}
+.drag-fb.good::before{content:"✓ ";color:#2f9e3a;font-weight:800}
+.drag-fb.bad{background:var(--bad-soft);color:var(--bad)}
+.drag-fb.info{background:#f1f5f4;color:var(--ink)}
+.ghost-chip{opacity:.92}
+@media (orientation:portrait) and (max-width:900px){
+  .panel .chips{flex-direction:row;gap:8px}
+  .panel .chip{flex:1;font-size:14px;padding:8px 8px 8px 30px;min-height:46px}
+  .panel .chip::before{left:10px;font-size:15px}
+  .panel .tray{padding:10px 12px;margin-bottom:8px}
+  .panel .tray-sub{display:none}
+}
+
+/* Toast */
+.toast{
+  position:absolute;left:50%;top:14px;transform:translate(-50%,-10px);z-index:31;max-width:min(520px,calc(100% - 130px));padding:10px 18px;border-radius:var(--r-sm);
+  background:var(--brand-dark);color:#fff;font-size:13.5px;font-weight:600;box-shadow:var(--sh-3);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:var(--bad)} .toast.ok{background:var(--brand)}
+.done-pill{background:var(--gold);color:#fff;font-weight:700;font-size:12px;border-radius:99px;padding:6px 12px;display:none;box-shadow:var(--sh-1)}
+.done-pill.show{display:inline-block}
+
+/* Overlay kiến thức & tổng kết */
+.overlay{
+  position:absolute;inset:0;z-index:12;display:none;align-items:center;justify-content:center;padding:16px 62px;
+  background:rgba(15,63,61,.52);backdrop-filter:blur(3px)
+}
+.overlay.show{display:flex;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.know-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh-3);padding:22px 26px;width:min(520px,100%);max-height:100%;overflow:auto}
+.know-card.wide{width:min(820px,100%)}
+.qn{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.know-card h2{margin:6px 0 14px;color:var(--brand-dark);font-size:20px;line-height:1.3}
+.know-list{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:10px}
+.know-list li{display:flex;gap:10px;font-size:15px;line-height:1.55;color:var(--ink);background:var(--brand-soft);border-radius:var(--r-sm);padding:10px 12px}
+.know-list li::before{content:"✓";flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.mem-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 18px}
+.mem-card{border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;background:var(--stage-mid);text-align:center}
+.mem-card svg{width:68px;height:68px}
+.mem-card .m-k{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:4px 0}
+.mem-card p{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink);font-weight:500}
+.done-view{text-align:center;padding:6px 0}
+.done-view .big{width:64px;height:64px;border-radius:50%;background:var(--brand);color:#fff;font-size:34px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.done-view p{margin:0 0 16px;font-size:14px;color:var(--ink)}
+@media (max-width:700px){.mem-cards{grid-template-columns:1fr}.mem-card{display:grid;grid-template-columns:68px 1fr;gap:10px;align-items:center;text-align:left}.mem-card svg{grid-row:span 2}}
+
+/* ---------- Textbox kết luận Step 02 ---------- */
+.overlay.step02-conclusion{
+  align-items:flex-start;justify-content:center;overflow:auto;padding:46px 5% 24px;
+  background:linear-gradient(135deg,rgba(205,238,236,.86),rgba(255,225,236,.80) 55%,rgba(255,246,222,.84));backdrop-filter:blur(5px)
+}
+.step02-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.step02-confetti i{position:absolute;display:block;border-radius:2px;opacity:0;animation:s2Conf .7s ease-out both}
+@keyframes s2Conf{from{opacity:0;transform:translateY(-16px) rotate(0)}to{opacity:.9;transform:translateY(0) rotate(var(--r))}}
+.step02-conclusion-card{
+  position:relative;z-index:1;margin:auto;width:min(100%,960px);background:#fffefb;border-radius:clamp(20px,3vw,32px);
+  border-top:clamp(6px,.8vw,8px) solid #12a39a;padding:clamp(20px,3.2vw,36px) clamp(18px,4vw,40px) clamp(20px,3vw,34px);
+  box-shadow:0 26px 60px -22px rgba(15,63,61,.55)
+}
+.step02-conclusion-astro{position:absolute;right:clamp(14px,3.5vw,38px);top:clamp(-34px,-3vw,-26px);width:clamp(84px,12vw,150px);height:auto;filter:drop-shadow(0 8px 10px rgba(15,63,61,.25))}
+.step02-conclusion-badge{
+  display:inline-flex;align-items:center;gap:8px;height:clamp(36px,3.4vw,44px);padding:0 clamp(14px,1.8vw,22px) 0 clamp(10px,1.2vw,14px);border-radius:99px;
+  background:linear-gradient(135deg,#ffc13d,#ff8a2b);color:#fff;font-weight:800;font-size:clamp(15px,1.5vw,19px);letter-spacing:.04em;
+  box-shadow:0 8px 16px -6px rgba(255,138,43,.7)
+}
+.step02-conclusion-heading{
+  margin:clamp(10px,1.4vw,16px) 0 clamp(14px,2vw,22px);font-weight:800;font-size:clamp(24px,3.2vw,38px);line-height:1.2;color:#0f6f6a;text-transform:uppercase;
+  padding-right:clamp(70px,13vw,170px)
+}
+.step02-conclusion-item{
+  position:relative;display:flex;align-items:center;gap:clamp(12px,1.8vw,20px);min-height:clamp(74px,9vw,98px);margin-bottom:clamp(12px,1.8vw,19px);
+  padding:10px clamp(14px,2vw,22px) 10px clamp(30px,3.4vw,40px);border:2px solid #3cc9bd;border-radius:clamp(13px,1.6vw,17px);overflow:hidden;
+  background:linear-gradient(90deg,#dcf8f3,#f3fffd);box-shadow:0 10px 20px -12px rgba(18,163,154,.7)
+}
+.step02-conclusion-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:clamp(11px,1.3vw,16px);background:#0f8f89}
+.step02-conclusion-check{flex:0 0 auto;width:clamp(36px,4.2vw,52px);height:auto}
+.step02-conclusion-item p{flex:1;min-width:0;margin:0;font-size:clamp(16px,2.3vw,26px);font-weight:500;line-height:1.35;color:#0e2a2a}
+.step02-conclusion-illustration{flex:0 0 auto;width:clamp(48px,7vw,86px);height:auto}
+.step02-conclusion-next{
+  display:inline-flex;align-items:center;justify-content:center;min-width:clamp(160px,20vw,204px);padding:0 26px;height:clamp(52px,6vw,63px);margin-top:clamp(6px,1vw,12px);
+  border-radius:99px;border:2px solid #0b6e6a;cursor:pointer;color:#fff;font-weight:800;font-size:clamp(17px,1.9vw,21px);font-family:inherit;letter-spacing:.03em;
+  background:linear-gradient(90deg,#2bd6c6,#0f7c78);box-shadow:0 12px 22px -10px rgba(15,124,120,.8);transition:transform .2s,filter .2s
+}
+.step02-conclusion-next:hover{filter:brightness(1.1);transform:translateY(-2px)}
+.step02-conclusion-next:focus-visible{outline:3px solid #f2c14e;outline-offset:3px}
+/* animation: tổng thời gian < 1s, chỉ chạy một lần */
+.step02-conclusion.show .step02-conclusion-card{animation:s2Card .3s ease both}
+.step02-conclusion.show .step02-conclusion-badge{animation:s2Rise .3s .1s ease both}
+.step02-conclusion.show .step02-conclusion-heading{animation:s2Rise .3s .15s ease both}
+.step02-conclusion.show .step02-conclusion-item:nth-child(4){animation:s2Rise .3s .28s ease both}
+.step02-conclusion.show .step02-conclusion-item:nth-child(5){animation:s2Rise .3s .43s ease both}
+.step02-conclusion.show .step02-conclusion-check{animation:s2Pop .3s .45s ease both}
+.step02-conclusion.show .step02-conclusion-item:nth-child(5) .step02-conclusion-check{animation-delay:.6s}
+.step02-conclusion.show .step02-conclusion-next{animation:s2Rise .3s .65s ease both}
+@keyframes s2Card{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes s2Rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes s2Pop{0%{transform:scale(.6)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+/* Step 04 (hai bán cầu) & tổng kết Module 1 dùng chung component */
+.step04-conclusion.show .equator-draw{animation:s3Wipe .45s .4s ease-out both}
+.step04-conclusion.show .hemi-n{animation:s4Fade .2s .5s ease both}
+.step04-conclusion.show .hl-n{animation:s4Pop .2s .62s ease both}
+.step04-conclusion.show .hemi-s{animation:s4Fade .2s .75s ease both}
+.step04-conclusion.show .hl-s{animation:s4Pop .2s .87s ease both}
+@keyframes s4Fade{from{opacity:0}to{opacity:1}}
+@keyframes s4Pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.hl-n,.hl-s{transform-box:fill-box;transform-origin:center}
+.module01-summary .step02-conclusion-heading{padding-right:clamp(70px,13vw,170px);margin-bottom:6px;font-size:clamp(22px,min(3vw,4.6vh),34px)}
+.summary-sub{margin:0 0 clamp(10px,1.6vh,16px);font-size:clamp(14px,min(1.5vw,2.4vh),17px);line-height:1.45;color:#4a6a69;padding-right:clamp(70px,13vw,170px)}
+.module01-summary .step02-conclusion-card{padding-top:clamp(16px,3vh,32px);padding-bottom:clamp(14px,2.6vh,28px)}
+.module01-summary .summary-item{min-height:clamp(60px,10vh,92px);margin-bottom:clamp(8px,1.5vh,14px);padding-top:6px;padding-bottom:6px}
+.summary-text{flex:1;min-width:0}
+.summary-name{display:block;font-size:clamp(12px,min(1.2vw,2vh),15px);font-weight:800;letter-spacing:.07em;color:#0f8f89;margin-bottom:2px}
+.module01-summary .summary-item p{font-size:clamp(15px,min(1.9vw,3vh),22px);line-height:1.35}
+.module01-summary .step02-conclusion-illustration{width:clamp(48px,min(7vw,11vh),92px)}
+.module01-summary .step02-conclusion-check{width:clamp(34px,min(4vw,6vh),50px)}
+.module01-summary .step02-conclusion-next{margin-top:clamp(2px,.8vh,8px)}
+.module01-summary.show .summary-item:nth-child(1){animation:s2Rise .3s .28s ease both}
+.module01-summary.show .summary-item:nth-child(2){animation:s2Rise .3s .43s ease both}
+.module01-summary.show .summary-item:nth-child(3){animation:s2Rise .3s .58s ease both}
+.module01-summary.show .summary-item:nth-child(1) .step02-conclusion-check{animation:s2Pop .3s .5s ease both}
+.module01-summary.show .summary-item:nth-child(2) .step02-conclusion-check{animation:s2Pop .3s .65s ease both}
+.module01-summary.show .summary-item:nth-child(3) .step02-conclusion-check{animation:s2Pop .3s .8s ease both}
+.module01-summary.show .summary-astro svg{animation:s2Rise .4s .6s ease both}
+.module01-summary.show #sumMain .step02-conclusion-next{animation:s2Rise .3s .85s ease both}
+.module01-summary .done-view{padding:18px 0 6px}
+/* Biến thể Step 03 (cực Bắc/Nam & Xích đạo) dùng chung component */
+.astro-globe{display:none}
+.geo .astro-globe{display:block}
+.astro-half{display:none}.step04-conclusion .astro-half{display:inline}
+.step02-conclusion-item p b{font-weight:700;color:#0b6a66}
+.geo .step02-conclusion-illustration{width:clamp(56px,8.5vw,112px)}
+.geo .step02-conclusion-item{min-height:clamp(80px,9.5vw,112px)}
+.geo .step02-conclusion-item p{font-size:clamp(16px,2.1vw,25px)}
+.step02-confetti i.star{width:16px;height:16px;background:#ffd966;border-radius:0;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.step03-conclusion.show .pole-n{animation:s3Pole .2s .5s ease both}
+.step03-conclusion.show .pole-s{animation:s3Pole .2s .65s ease both}
+.step03-conclusion.show .equator-draw{animation:s3Wipe .5s .62s ease-out both}
+@keyframes s3Pole{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+@keyframes s3Wipe{from{clip-path:inset(-10% 100% -10% 0)}to{clip-path:inset(-10% -10% -10% 0)}}
+.pole-n,.pole-s{transform-box:fill-box;transform-origin:center}
+@media (max-height:720px){
+  .overlay.step02-conclusion{padding-top:34px;padding-bottom:14px}
+  .step02-conclusion-card{padding-top:16px;padding-bottom:16px}
+  .step02-conclusion-heading{font-size:clamp(22px,2.6vw,30px);margin:8px 0 12px}
+  .step02-conclusion-item{min-height:62px;margin-bottom:10px}
+  .step02-conclusion-item p{font-size:clamp(16px,1.9vw,21px)}
+  .step02-conclusion-check{width:38px}.step02-conclusion-illustration,.geo .step02-conclusion-illustration{width:60px}
+  .geo .step02-conclusion-item{min-height:64px}.geo .step02-conclusion-item p{font-size:clamp(15px,1.8vw,20px)}
+  .step02-conclusion-next{height:48px;margin-top:2px}
+}
+@media (max-width:520px){.step02-conclusion-astro{display:none}.step02-conclusion-heading{padding-right:0}}
+
+/* ---------- Thu gọn textbox kết luận / tổng kết: vừa khung sân khấu, không cuộn (co theo cả chiều cao) ---------- */
+.overlay.step02-conclusion{padding:clamp(28px,4.5vh,40px) 6% clamp(10px,2vh,18px)}
+.overlay.step02-conclusion .step02-conclusion-card{
+  width:min(920px,100%);max-height:100%;box-sizing:border-box;border-radius:26px;border-top-width:6px;
+  padding:clamp(14px,2.8vh,24px) clamp(18px,2.4vw,30px)
+}
+.overlay.step02-conclusion .step02-conclusion-astro{width:clamp(70px,min(8.5vw,13vh),108px);right:clamp(14px,2vw,26px);top:clamp(-24px,-3vh,-14px)}
+.overlay.step02-conclusion .step02-conclusion-badge{height:clamp(28px,4.2vh,36px);font-size:clamp(13px,1.9vh,16px);padding:0 clamp(12px,1.3vw,18px) 0 clamp(9px,1vw,12px);box-shadow:0 5px 10px -5px rgba(255,138,43,.7)}
+.overlay.step02-conclusion .step02-conclusion-badge svg{width:clamp(18px,2.8vh,22px);height:auto}
+.overlay.step02-conclusion .step02-conclusion-heading{
+  font-size:clamp(22px,min(2vw,3.8vh),30px);line-height:1.2;margin:clamp(6px,1.4vh,12px) 0 clamp(10px,2vh,18px);padding-right:clamp(70px,9vw,130px)
+}
+.overlay.step02-conclusion .step02-conclusion-item{
+  min-height:clamp(60px,10.5vh,96px);padding:8px 16px 8px clamp(24px,2.4vw,30px);margin-bottom:clamp(8px,1.6vh,13px);
+  border-radius:14px;gap:clamp(10px,1.4vw,16px)
+}
+.overlay.step02-conclusion .step02-conclusion-item::before{width:clamp(9px,1vw,12px)}
+.overlay.step02-conclusion .step02-conclusion-item p{font-size:clamp(16px,min(1.5vw,2.7vh),21px);line-height:1.4}
+.overlay.step02-conclusion .step02-conclusion-check{width:clamp(32px,5vh,42px)}
+.overlay.step02-conclusion .step02-conclusion-illustration{width:clamp(54px,min(7vw,10.5vh),88px)}
+.overlay.step02-conclusion .step02-conclusion-next{
+  height:clamp(42px,6.2vh,50px);min-width:clamp(150px,15vw,184px);padding:0 22px;font-size:clamp(15px,2.2vh,18px);margin-top:clamp(8px,2vh,18px)
+}
+.overlay.module01-summary .step02-conclusion-heading{font-size:clamp(21px,min(1.9vw,3.6vh),28px);margin-bottom:4px}
+.overlay.module01-summary .summary-sub{font-size:clamp(13px,2vh,16px);margin-bottom:clamp(8px,1.6vh,14px);padding-right:clamp(70px,9vw,130px)}
+.overlay.module01-summary .summary-item{min-height:clamp(52px,9vh,84px);margin-bottom:clamp(7px,1.4vh,11px);padding-top:5px;padding-bottom:5px}
+.overlay.module01-summary .summary-item p{font-size:clamp(15px,min(1.4vw,2.5vh),20px)}
+.overlay.module01-summary .summary-name{font-size:clamp(11px,1.8vh,14px)}
+.overlay.module01-summary .step02-conclusion-illustration{width:clamp(46px,min(6vw,9.5vh),76px)}
+.overlay.module01-summary .step02-conclusion-check{width:clamp(30px,4.6vh,40px)}
+.overlay.module01-summary .step02-conclusion-card{padding-top:clamp(14px,2.6vh,22px);padding-bottom:clamp(12px,2.4vh,22px)}
+.overlay.module01-summary .step02-conclusion-next{margin-top:clamp(4px,1.2vh,12px)}
+@media (max-width:700px){
+  .overlay.step02-conclusion{padding-left:50px;padding-right:50px}
+  .overlay.step02-conclusion .step02-conclusion-card{padding-left:14px;padding-right:14px}
+  .overlay.step02-conclusion .step02-conclusion-item{padding-right:10px;padding-left:20px;gap:8px;min-height:56px}
+  .overlay.step02-conclusion .step02-conclusion-item p{font-size:15px}
+  .overlay.step02-conclusion .step02-conclusion-heading{font-size:20px}
+  .overlay.module01-summary .summary-sub{display:none}
+  .overlay.module01-summary .summary-item{min-height:50px}
+  .overlay.module01-summary .step02-conclusion-illustration{width:44px}
+  .overlay.module01-summary .step02-conclusion-check{width:30px}
+  .overlay.step02-conclusion .step02-conclusion-illustration{width:50px}
+  .overlay.step02-conclusion .step02-conclusion-card{padding:12px}
+  .overlay.step02-conclusion .step02-conclusion-heading{font-size:18px;margin:6px 0 8px}
+  .overlay.module01-summary .summary-item{padding-left:16px;padding-right:8px;gap:6px;min-height:46px}
+  .overlay.module01-summary .summary-item p{font-size:14px;line-height:1.3}
+  .overlay.module01-summary .summary-name{font-size:10.5px;letter-spacing:.03em}
+  .overlay.module01-summary .step02-conclusion-check{width:26px}
+  .overlay.module01-summary .step02-conclusion-illustration{width:38px}
+  .overlay.module01-summary .step02-conclusion-next,.overlay.step02-conclusion .step02-conclusion-next{height:42px;font-size:15px}
+}
+@media (max-width:520px){.overlay.step02-conclusion .step02-conclusion-astro{display:none}.overlay.step02-conclusion .step02-conclusion-heading,.overlay.module01-summary .summary-sub{padding-right:0}}
+
+/* ---------- UX/UI v2: nền vũ trụ, toolbar, chú thích, hint ---------- */
+.stage{--pw:0px;background-size:cover;background-position:center}
+.canvas-host{right:var(--pw)}
+.stage-nav.next{right:calc(var(--pw) + 12px)}
+.toast{left:calc((100% - var(--pw)) / 2);font-size:15px}
+.tray{left:calc((100% - var(--pw)) / 2)}
+.stage-tools{gap:9px}
+.stage-tools .ghost{
+  background:rgba(7,24,42,.58);backdrop-filter:blur(10px) saturate(1.2);border:1px solid rgba(255,255,255,.18);color:#fff;
+  border-radius:11px;padding:9px 14px;font-size:clamp(13px,1.1vw,15px);min-height:40px;transition:background .2s,border-color .2s
+}
+.stage-tools .ghost:hover{background:rgba(22,64,86,.78);border-color:rgba(255,255,255,.38)}
+.stage-tools .ghost[aria-pressed="true"]{background:rgba(47,130,125,.9);border-color:rgba(255,255,255,.4)}
+.stage-hint{background:rgba(255,253,247,.97);font-size:clamp(13px,1.2vw,16.5px);padding:11px 19px;box-shadow:0 8px 20px -8px rgba(0,0,0,.55)}
+.tag{font-size:clamp(14px,1.3vw,17px);padding:8px 16px;border-radius:10px;box-shadow:0 8px 18px -6px rgba(0,0,0,.55);transition:opacity .25s}
+.tag.lead::before{content:"";position:absolute;right:100%;top:50%;width:16px;height:2px;margin-top:-1px;background:#fff}
+.tag.up::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:16px;margin-left:-1px;background:var(--gold)}
+.zone.done{font-size:clamp(14px,1.3vw,17px);padding:9px 18px;border-radius:12px}
+.know-card{width:min(600px,100%)}
+.know-list li{font-size:clamp(15px,1.3vw,18px)}
+
+/* Desktop 16:9: mô hình bên trái (~65%), panel nội dung bên phải (~35%) */
+@media (min-width:901px) and (orientation:landscape){
+  .stage{--pw:clamp(368px,24.5vw,448px)}
+  .panel,.panel.compact{
+    right:14px;top:14px;bottom:14px;left:auto;width:calc(var(--pw) - 28px);max-height:none;flex-direction:column;
+    padding:20px 20px 18px;border-radius:20px;background:rgba(253,252,248,.97);box-shadow:0 18px 50px -18px rgba(0,0,0,.65);overflow:auto
+  }
+  .panel.show{display:flex}
+  .p-kicker{font-size:clamp(16px,1.1vw,19px);padding:14px 16px;border-radius:13px;margin:0 0 14px;letter-spacing:.03em;line-height:1.3}
+  .p-title{font-size:clamp(18px,1.3vw,21px);line-height:1.35;margin-bottom:12px}
+  .p-body,.panel.compact .p-body{font-size:clamp(16px,1.05vw,18px);line-height:1.5;margin:0 0 14px}
+  .p-actions{flex-direction:column;flex-wrap:nowrap;gap:12px;margin-top:4px}
+  .p-actions .btn{width:100%;min-height:52px;font-size:clamp(15px,1vw,17px)}
+  .btn.secondary{border:2px solid var(--brand);color:var(--brand-dark);background:#fff}
+  .p-foot{margin-top:auto;padding-top:14px;font-size:clamp(14px,.95vw,15.5px)}
+  .p-foot b{font-size:13px;margin-bottom:4px}
+  .opts{gap:10px;margin-bottom:14px}
+  .opt{min-height:60px;font-size:clamp(15px,1vw,17px);padding:6px 12px}
+  .opt svg{width:46px;height:46px}
+  .fb{font-size:clamp(15px,1vw,17px);margin-bottom:12px}
+  .meter{height:8px;margin-bottom:18px}
+  .tray{width:min(540px,calc(100% - var(--pw) - 120px));padding:14px 20px 16px}
+  .tray-title{font-size:16px;margin-bottom:10px}
+  .tray-sub{font-size:13.5px}
+  .chip{min-height:50px;font-size:15px;padding:10px 22px}
+  .zone{width:112px;height:112px;font-size:13px}
+}
+
+/* Màn hình dọc: panel dạng bottom sheet */
+@media (orientation:portrait) and (max-width:900px){
+  .panel{right:54px;left:54px;top:auto;bottom:52px;width:auto;max-height:44%}
+  .panel.compact{width:auto}
+  .opts{flex-direction:row;gap:6px}
+  .opt{flex:1;flex-direction:column;min-height:0;padding:8px 4px;text-align:center;font-size:12px;gap:4px;justify-content:center}
+  .opt svg{width:40px;height:40px}
+  .opt.correct::after{right:4px;top:4px;width:20px;height:20px;font-size:12px}
+  .tray{width:calc(100% - 24px);bottom:52px;padding:8px 12px 10px}
+  .tray-sub{display:none}
+  .tray-title{margin-bottom:6px;font-size:12.5px}
+  .toast{max-width:calc(100% - 100px)}
+  .overlay{padding-left:56px;padding-right:56px}
+}
+/* Màn hình ngang thấp (điện thoại xoay ngang) */
+@media (max-height:520px){
+  .main{padding:6px}.topbar{padding:6px 12px}
+  .panel{padding:10px 12px;width:min(260px,calc(100% - 130px))}
+  .p-body{font-size:12px}.p-title{font-size:13.5px}
+  .btn{min-height:40px;padding:8px 16px;font-size:12.5px}
+  .opt{min-height:48px}.opt svg{width:36px;height:36px}
+  .tray{bottom:46px;padding:8px 12px}.tray-sub{display:none}
+  .stage-hint{font-size:11.5px;padding:5px 11px}
+  .know-card{padding:14px 18px}.know-card h2{font-size:17px;margin-bottom:8px}.know-list li{font-size:13.5px;padding:7px 10px}
+  .zone{width:84px;height:84px}
+}
+</style>
+</head>
+<body>
+
+<div class="intro-loader" id="introLoader" aria-live="polite">
+  <canvas id="introEarth" aria-hidden="true"></canvas>
+  <div class="intro-loader__inner">
+    <section class="intro-card" aria-labelledby="introTitle">
+      <div class="intro-kicker">Tự nhiên và Xã hội 3</div>
+      <h1 id="introTitle">Khám phá Trái Đất</h1>
+      <p class="intro-sub">Xoay quả địa cầu, khám phá các vị trí quan trọng và tìm hiểu hai bán cầu của Trái Đất.</p>
+      <div class="intro-progress" aria-hidden="true"><span id="introProgressBar"></span></div>
+      <div class="intro-meta">
+        <div id="introStatus"><span class="ready-dot"></span>Đang chuẩn bị mô hình 3D…</div>
+        <div class="intro-time">Khoảng vài giây</div>
+      </div>
+      <button class="intro-explore" id="btnExplore" type="button">BẮT ĐẦU KHÁM PHÁ</button>
+      <button class="intro-retry" id="btnRetry" type="button">↻ Thử tải lại</button>
+    </section>
+    <div class="intro-credit">Được phát triển bởi <strong>YooBook</strong></div>
+  </div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="logoclip"><img class="logo" alt="YooBook" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaMAAABPCAYAAABGZKq5AAAPSUlEQVR42u1dabBUxRX+Zp6IW4FgFDUgxH1L3MUlaMTSZ6qC0Vg+lEWgJHGNgTzigiIKYkhExKiooIgbGrRwrRKjJrhbIkZNiaIxaiIRiQF3XxSZ/Jg7Or6amXtP733n+6qm3ry53adPd5/ur7tv9+nCFm3HgSAIgiB8osgiIAiCIGIio1MBlDJ82nNYThMy5n0wTYogCMI8GY2v6mivyihzWlWcSyIum7lV+ZiUMc7tVXG4/kkQBKFJRrOSDnWKpvxxiZz5EZXJ4kTnEZpybkvknEMzIwiCaIxCjQ0MJZvpBVwW3QF80KR5JwiCCGZmdKllIkLAs6RllomokvdTaXIEQRCNZ0Yl12kHUgbNmm+CIIggZ0b75pwESEQEQRARkNFiAD9qIkIiEREEQQRIRgDwaJMQEomIIAgiYDKqENIROSYH10TUjWZGEAQhJyMAeBDAqBwSkg8i+phmRhAEoUZGQNkDwc9zREiuiag7iYggCEKfjADgOgAn5oCQXBPRJgA+onkRBEGYISMAmAPgpIgJyTUR9QGwiqZFEARhloyAsq8610t2HRES0SAA79CsCIIg7JARUF6yczlD6qpJSK6J6EgA99OkCIIg7JJRZYbkmpA+iYCIjgZwH82JIAjCDRn5IKQNAXwWMBEdA+BumhJBEIRbMqoQkksP1Osj26YA10Q0HMACmhFBEIQfMgKAqwH80qGuPQA8HBARjQVwC02IIIjA8Si+uYE67bNHjGQEAFcCmOpQ30MBLAyAiMYBmEEbJwgiAnwqCPtFrGQElK/VnuZQ51YAD3is2N+gfBFhGkoKn7ct666iE+EWJc+fYayC3EHSzxdiUDKtg57uUO8j8O0lsvUdEtE0i5W6leVOTorr2Y6bDjdXEdPmLI5cQNIXtcRORgDQ7piQhqK8kw0on0d6KSAick0aaRipGG8023FT413OjpuOjKKYvmUlpBkO9b+z6vtuARKRqhF0Naz/DQpxdmQbJqoGSBNZDE2BYp4SHgvgMccNpYJNLcg/S3NGdKNCnA6D+j+hGG8Z2yVRhQsArGYxELGx4MEAnnOYj8nJ3/cNyx0P4PeaMkYqxjN1n9SBeZ3WE86xMYA3WAzRoSUGJW1OyfYB8IKjfJxX9b23QSL6rSFZWyvEmWN41pgV7GyINFtuZTGQuGIiI6B8gOpFR3mpEMdyA7IuMkhEAPCmYrxHPNjEtmyPRAoWsgiI2MgIAHaH/Z1uAHB21fdnNORcA2CCBf1Ulr4GOp4VncgmQWTErSwCckIoCUsORu4Gt/f87K8Y7zoAp1jU63VHpHKkon5z2BaJjBjCIiDB+FZyYY0OMgsp9YH93Tg61zhcB/sXCG7vqF7vcTRzI/yjoPE5mMVHxDgzaksIpzVlFN/IeWhPAB9YzM9PAiaiClTcrUhmR/PZnoiMeEyTlPZjEUaBXO2mKwH4Y8awQ5PwO9V53sMyIVWwXNAgXV6prrrWflDGcMdyVkQokNIuCvGOZdERrshIx1nm0gZxXRDSvAxhXoOfpQqVzv9RwzMoFzOprhETXQvMe8IIGUsV4vjwXVeMvF5C1z24Zbq/wpxPqhKAFXUI6WPLo71G+DuAHSIz5NkWZA42IGMaanuA7gCwtsbva6G3U9Ak9kwGRp11XJPoXytfc3NKSNLZ0WcWdekHYGWNsv+qQb3MC6gsr23QJmr9/jmAQwIY/AZzzujypGB2N5xOr0TulZ1+7wbZXRsSNDq8+SaA7Twbq8qMYbThWdE+GvoPqWpI7Qp5fwR+r6mopL0EQHdh3BFV8c9v4tnRPRZ0WJ2U65uQu/c6vqpepnkov1Oq0v+FMO56AP6MeK9uuQua19N0JqMzLCt8Wo3fNnJcaP+AmkcEG7haIc4nNX47QDF9FZdNeyeGZPKcicsGaDqtCxN5Z6D5cL+FetnYkLz2RN4kB+XQmqQ1M9I2oTtIHgXgKN10ijUC2Frjb/T+wEaafWr89imAbQJqzKcqxNmwxm9POjK6EoDFlolitiXZR1tu3Jcj/usWjvCQ5gDL5TbBsvwS7HqkKAG4OGCb2Q/y84k1+55ig8CmfLxdlMjrfJ3t3E5GYpqQOjsIXeNhFqZKmlkMtAKV0dhyzTRtYrSFtFYCWOBw5rVlpGQkuUH5UgPpvQh3Hv5LAHa2INMFztFMq8VSWAB42tQguJjSYRU0jO7zJH4t1zqTUV53B4B7q35/3mAFHl/1fS2ALoF2AKqeKdZJ/qp4jOgdaKOzkWYJdq4WSSP7gYgL0pf/4wzUyw8c5/FlfNupsirWjbxN+NKn4YSjmNHoCkmHLkl0gzrPLuxkEIOqvu9lsKAqGxQ+RfiHvlRmhV8qGmd7RA2gFHHjfQTqbqlcY2mnwZsNew2lXiZD/wbj/0XWJgoB6JGqg2RPeUsGgf1TwkxA7d1H1RmboVFAtRyybhRJh7DEUTrTI+k0dHV4OgDdnwrY3vZEecdaowPqNjq22wPI+2yNfMTcJrJgHR9EJCWjasH7dvrtjuT3ZxvEG43GO1v6Jn/HahRkRa9uFkcEtrC3gzRaImt0FUhvy/0OwnFVU3IgX+WzBOWzPK5H2IMDqZe1AdalBFM9lUvJls2onrZdnCQyPvnblhJ+FNJ3Sb1V9V3VoWpl+vwR4jz53xZIAwzNzcsJwvD/CUz/DxE37jbUnmJ+59EemO5nWRqEFg3WX18YSjgLslxANxLyrX89FXR5BvHjDouyJZ2Jjougm1HbQ3R36N0im7Uh6J5/2quO/jqdUbeIbbKA8rZ4XehuHBhYp15c3cGlc4h2Vh3de2oOnFySe0mhHf3TJRmlYQSAGwThH9BIa3/kAzZmdHcLwqo6jZ2Z6F5vFvMRyrfIFlDeam0LQzTKvYD6OzqnJ893zMmswLXekzXr5S91ns9Jnm9qMX+XaeS5AOCkOs9XA9gsCROyfawRhh8HhZ3RNsloGOQ+vFQP3b0KohEkI9tZih3GaYLwvfDN1n4JVqQ8b1WQ+YVwALAMzeflXNcbwPcdDMzet1gvYxR1l7iKKkLthulnDffznY/ALIJsmW8mFI8D2SKjnVBertHBJcL08gSTjeqQQHW9CfKlr14pz1VOwnd1mO/RkdtlCcAVCvFecmhXKvHOC6RNXISyJw8J9rFY3xdDdqvBEuGg1DoZfQ9q7ug7I+sW5M1yOhq93JCcRYKwvxbKnu+ojkMlfWn82Tmwy9Nhf0nJdb00WkKU+o/U9U83xkJ5Svr5ylGYESh7fsiKNdDcEWyajPqh7IhUB8OTvysyhH0K4e2c8rk0oNsopdPrwR50vNBQ+f4KhO4syQZmBZbPk4XhT/PQJk4wmN/Ku7m5wnjaHm5MklFflA/R6WKAIOyBOW/wW2nEXWlZt6WeyqTeksqRQjl/MKRPNzQv7swQRupV5aRAZlcqeCiwNqFSFith8SyRCzLqjW+fE9LBNgEbm2v8SyNuL8u6mfS9NtOAzQ7xVEcfe7aRgqGPynvXYzKEaUPz4HCDsu4ThN0ug40EP0s2QUYtmp1mLKMen52NFC4O6L1nUJaJ92P9I5jVAcAmgdrZq4mtSZfZSwbrpcNj/vcIrD6mIy5M8U1GRcj3oKch7aBUs22rbQZDfs2ADMmSpk+/dX0CrwvT931Jzv88xHr5Gssia8PjfZJREeX76E1jEYmIUIDE15jPEfhXEZSltJ1dZnHA26woNZvORY14thpVxZ1LPxJR08DEpWeSzTM/9JjXf+ew/sY0eLZKIGeAxzy8E1iZ7mpQlssrdJQvS1QlI5uju8qy3ygSUdAw+e7jbAMyXhCE3c1juf03kvpdYUjOE4KwG3vM7/OBlf/ZkfYLygMKKRmt43D6eD6JKGg8bFDWcEHYektst+VgBBsSTB0mv8OT/j08pHmzQVmHCsIuDcx2lDhC6rPoS8uZ6OwMkUQULnb3lG69e1zuEsoZZUifv+W0fk2963lOGH6KoXRXeSizYZ7q6neW63IPAJsL43xmy+DWRdmhpG0MJBF5hdRHl4lbO6WjKFMeGOYYkNEjp3bg8yDv+MDK4iph+Cs9tImbLOb/YpSXwN+DbOl2fQAHmCajFvi9851wB+modDDUHY2aarjOlxM0Rt/DIrGDDyOvF2n8Mxs8O10oS9cd0L0BzXLvBXBu1f9bCOM/aVJJG+eI6mEvEDGiQ5GQJio03LQdT4c57PhU4t0aeF12VczX+ynPdwm8Xi4xXI6qul8DYJAwzrOWbOE1AD+t8XvBVlmkkZHLMxHPgwgBJyvE6QDwoNBAL1BIJ+1gouqmCknnMRTxXpRXj4DOTfKkev4qbRCw1EG9HGqxXi5Q1H2OMLyKX74sHi5UXnnsYLA8xuiSkcsGx/dD4eBaxXiHJzbzSh1Drjy3bVeq6+cV3Wo1nBaUd4WVANwSmI2XND8dKN+jo4MXMoQ5TzN/4+sQ6bzk+cMW60X1PeWoqjaxbY3nRztqEwXD4aXlkemm3MIWbcf5JqIFyOZwsZnh2ovuINhZu3bVoEKbuaxC9nNZsc26rkf2SwNDzFtWuxoD9evHfeu+DMD2GcO2AviTj36pGIDBkIjCw32B6XOjMHyvwPTfJMe2Irm9tiUw3SUDnBmB6W7L/+R3BWGlnlNul5BRKWBjIJq3bkYKw6+E2UO5tHEzeVubzKRCQM/I61LimV8yCJBwwCuQuVEanJWMSEREiHWkqsNhAeh+VI5t48caMynfd0ANB7C6idqEzY1oUm/npawzIxIREVJdFSLW/WcA7smpTRwAYKFG/G4APvek+0Sob0LRmVX5bBMtgen0RhoZFSDzEaaCM0lEJCTHaRZg7yxGPewKuXuimGzBxH1QG8D9/UUHAZhkQM7qyNpEwUEaknLdGkDftJnRLRYLuQDzh8uI/BHSbRbS6p90RK7K6eUc1v8CC/VyOLLv8jJRL49H2iamRzCInygM/1YaGVUXcgFm3AAVOBvKFSH1syx/iCXZjyfy37Uk/5yc2vm8JF+2dr2+nsh/xWInWbBss7talt+uKaOLIGyLpq4SlLKQUQXrJQnsD9ka7wCSUG7xdlKv+xlucK5sZUuYXbqrkNDUHNXxFVV1MtRRmjsn6S0yJG9yIm+SA91fTtJqDbRNSDxof2GgHiVo+zrDdQ69EoQEIwHMEozA3kD5/eTTAejeHcB8lJeMsmJqQkKEPXRJ6uUoQZwZAMYGov9oALMF4ZclqwJN6xaNZEQQBEF4R5FFQBAEQfjG/wEsZ2FcXFc57gAAAABJRU5ErkJggg==
+"></div>
+    <div class="titles">
+      <div class="badge">Tự nhiên và Xã hội 3</div>
+      <h1 class="lg">Khám phá Trái Đất</h1>
+      <h1 class="sm">Khám phá Trái Đất</h1>
+      <h1 class="xs">Khám phá Trái Đất</h1>
+    </div>
+    <div class="tb-right">
+      <button class="tb-btn" id="btnFullscreen" aria-label="Toàn màn hình" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="stagecol">
+      <div class="frame">
+        <div class="stage" id="stage">
+          <div class="canvas-host" id="canvasHost"></div>
+          <div class="vignette"></div>
+
+          <div class="stage-tools">
+            <button class="ghost" id="btnOverview" type="button">⤢ <span>Toàn cảnh</span></button>
+            <button class="ghost" id="btnAutorotate" type="button" aria-pressed="false">↻ <span>Tự xoay</span></button>
+            <button class="ghost" id="btnNarration" type="button" aria-pressed="true">🔊 <span>Thuyết minh</span></button>
+            
+          </div>
+
+          <button class="stage-nav prev" id="btnPrevStep" type="button" aria-label="Bước trước">◀</button>
+          <button class="stage-nav next" id="btnNextStep" type="button" aria-label="Bước sau">▶</button>
+
+          <!-- Nhãn 2D bám theo marker 3D -->
+          <div class="tags" id="tags">
+            <div class="tag lead" id="tagPoleN">Cực Bắc</div>
+            <div class="tag lead" id="tagPoleS">Cực Nam</div>
+            <div class="tag gold up" id="tagEq">Đường Xích đạo</div>
+          </div>
+          <div class="zone north" id="zoneN" data-hemi="north"></div>
+          <div class="zone south" id="zoneS" data-hemi="south"></div>
+
+          <div class="panel" id="panel" aria-live="polite"></div>
+
+          <div class="tray" id="tray">
+            <div class="tray-title">CHỌN NHÃN ĐỂ ĐẶT</div>
+            <div class="chips">
+              <button class="chip north" type="button" data-key="north">BÁN CẦU BẮC</button>
+              <button class="chip south" type="button" data-key="south">BÁN CẦU NAM</button>
+            </div>
+            <div class="tray-sub">👆 Kéo nhãn sang quả địa cầu hoặc chạm vào nhãn rồi chọn vị trí.</div>
+          </div>
+
+          <div class="stage-hint" id="stageHint"><span id="hintIcon">↻</span><span id="hintText">Chạm và kéo để xoay quả địa cầu.</span></div>
+          <div class="toast" id="toast" role="status"></div>
+
+          <!-- Overlay ghi nhớ -->
+          <div class="overlay" id="knowOverlay" aria-hidden="true">
+            <div class="know-card" role="dialog" aria-modal="true" aria-labelledby="knowTitle">
+              <div class="qn">Kết luận</div>
+              <h2 id="knowTitle">EM RÚT RA ĐƯỢC GÌ?</h2>
+              <ul class="know-list" id="knowList"></ul>
+              <button class="btn" id="knowBtn" type="button">TIẾP TỤC</button>
+            </div>
+          </div>
+
+          <!-- Overlay kết luận riêng của Step 02 -->
+          <div class="overlay step02-conclusion" id="s2Overlay" aria-hidden="true">
+            <div class="step02-confetti" id="s2Confetti" aria-hidden="true"></div>
+            <div class="step02-conclusion-card" role="dialog" aria-modal="true" aria-labelledby="s2Heading">
+              <!-- Phi hành gia trang trí: thay bằng ảnh riêng nếu có (xem .step02-conclusion-astro) -->
+              <svg class="step02-conclusion-astro" viewBox="0 0 130 150" aria-hidden="true">
+                <defs>
+                  <linearGradient id="s2Visor" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a3a86"/><stop offset="1" stop-color="#171031"/></linearGradient>
+                  <linearGradient id="s2Suit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe6f2"/></linearGradient>
+                </defs>
+                <rect x="20" y="78" width="26" height="40" rx="10" fill="#c9d2e4"/>
+                <ellipse cx="30" cy="140" rx="17" ry="8" fill="#e8edf6" stroke="#c4cde0" stroke-width="2"/>
+                <ellipse cx="82" cy="140" rx="17" ry="8" fill="#e8edf6" stroke="#c4cde0" stroke-width="2"/>
+                <rect x="38" y="106" width="22" height="32" rx="9" fill="url(#s2Suit)" stroke="#c4cde0" stroke-width="2"/>
+                <rect x="66" y="106" width="22" height="32" rx="9" fill="url(#s2Suit)" stroke="#c4cde0" stroke-width="2"/>
+                <rect x="32" y="74" width="62" height="50" rx="20" fill="url(#s2Suit)" stroke="#c4cde0" stroke-width="2"/>
+                <rect x="50" y="88" width="26" height="18" rx="5" fill="#8fd3cc"/>
+                <circle cx="57" cy="97" r="3" fill="#e4572e"/><circle cx="68" cy="97" r="3" fill="#2f827d"/>
+                <ellipse cx="24" cy="92" rx="12" ry="16" transform="rotate(25 24 92)" fill="url(#s2Suit)" stroke="#c4cde0" stroke-width="2"/>
+                <ellipse cx="102" cy="88" rx="12" ry="16" transform="rotate(-35 102 88)" fill="url(#s2Suit)" stroke="#c4cde0" stroke-width="2"/>
+                <circle cx="108" cy="72" r="9" fill="#f6f8fc" stroke="#c4cde0" stroke-width="2"/>
+                <g class="astro-globe"><circle cx="112" cy="62" r="17" fill="#2f86d6"/><path d="M104 54q6-5 11-1t1 8q-7 3-11-1z" fill="#58b85a"/><path class="astro-half" d="M95 62A17 17 0 0 1 129 62A17 4.5 0 0 1 95 62Z" fill="#5db8ff" fill-opacity=".55"/><path class="astro-half" d="M95 62A17 17 0 0 0 129 62A17 4.5 0 0 1 95 62Z" fill="#ffa24d" fill-opacity=".6"/><ellipse cx="112" cy="62" rx="17" ry="4.5" fill="none" stroke="#ffc13d" stroke-width="2.6"/><ellipse cx="106" cy="55" rx="5" ry="3" fill="#fff" opacity=".35"/><circle cx="108" cy="73" r="8" fill="#f6f8fc" stroke="#c4cde0" stroke-width="2"/></g>
+                <circle cx="64" cy="46" r="40" fill="#f6f8fc" stroke="#c4cde0" stroke-width="2"/>
+                <rect x="30" y="26" width="68" height="46" rx="23" fill="url(#s2Visor)"/>
+                <ellipse cx="46" cy="38" rx="10" ry="5" fill="#fff" opacity=".35" transform="rotate(-20 46 38)"/>
+                <circle cx="52" cy="52" r="4" fill="#fff"/><circle cx="76" cy="52" r="4" fill="#fff"/>
+                <path d="M58 60q6 5 12 0" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <circle cx="40" cy="60" r="5" fill="#ff9db3" opacity=".6"/><circle cx="88" cy="60" r="5" fill="#ff9db3" opacity=".6"/>
+                <line x1="64" y1="6" x2="64" y2="-2" stroke="#c4cde0" stroke-width="3"/><circle cx="64" cy="-2" r="3.5" fill="#f2c14e"/>
+              </svg>
+              <div class="step02-conclusion-badge">
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="10" r="9" fill="#fff6b0" opacity=".55"/><path d="M12 3a6.5 6.5 0 0 0-3.8 11.8c.6.5 1 1.2 1 2V18h5.6v-1.2c0-.8.4-1.5 1-2A6.5 6.5 0 0 0 12 3z" fill="#fff"/><rect x="9.4" y="19" width="5.2" height="2.2" rx="1.1" fill="#fff"/></svg>
+                <span>KẾT LUẬN</span>
+              </div>
+              <h2 class="step02-conclusion-heading" id="s2Heading">EM RÚT RA ĐƯỢC GÌ?</h2>
+              <div class="step02-conclusion-item">
+                <svg class="step02-conclusion-check" viewBox="0 0 56 56" aria-hidden="true"><defs><radialGradient id="s2Ck" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#9be86a"/><stop offset="1" stop-color="#2f9e3a"/></radialGradient></defs><ellipse cx="28" cy="52" rx="17" ry="3.5" fill="#0b3b2c" opacity=".22"/><circle cx="28" cy="26" r="24" fill="url(#s2Ck)"/><ellipse cx="20" cy="14" rx="11" ry="6" fill="#fff" opacity=".35" transform="rotate(-25 20 14)"/><path d="M16 27l8 8 16-17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <p>Trái Đất có dạng hình cầu.</p>
+                <svg class="step02-conclusion-illustration" viewBox="0 0 90 90" aria-hidden="true"><defs><radialGradient id="s2E1" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#6fd0ff"/><stop offset="1" stop-color="#1459b8"/></radialGradient><clipPath id="s2E1c"><circle cx="45" cy="45" r="36"/></clipPath></defs><circle cx="45" cy="45" r="36" fill="url(#s2E1)"/><g clip-path="url(#s2E1c)"><path d="M22 28q10-10 22-4t6 14q-8 8-18 4t-10-14zM50 50q12-4 20 6t-4 18q-14 0-18-10t2-14z" fill="#58b85a"/><path d="M12 46q6-4 10 2t-4 8z" fill="#58b85a"/><ellipse cx="34" cy="62" rx="13" ry="4.5" fill="#fff" opacity=".9"/><ellipse cx="62" cy="30" rx="12" ry="4" fill="#fff" opacity=".9"/><ellipse cx="46" cy="40" rx="9" ry="3" fill="#fff" opacity=".8"/></g><ellipse cx="34" cy="26" rx="12" ry="7" fill="#fff" opacity=".22" transform="rotate(-30 34 26)"/></svg>
+              </div>
+              <div class="step02-conclusion-item">
+                <svg class="step02-conclusion-check" viewBox="0 0 56 56" aria-hidden="true"><ellipse cx="28" cy="52" rx="17" ry="3.5" fill="#0b3b2c" opacity=".22"/><circle cx="28" cy="26" r="24" fill="url(#s2Ck)"/><ellipse cx="20" cy="14" rx="11" ry="6" fill="#fff" opacity=".35" transform="rotate(-25 20 14)"/><path d="M16 27l8 8 16-17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <p>Quả địa cầu là mô hình thu nhỏ của Trái Đất.</p>
+                <svg class="step02-conclusion-illustration" viewBox="0 0 90 90" aria-hidden="true"><defs><radialGradient id="s2E2" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#6fd0ff"/><stop offset="1" stop-color="#1459b8"/></radialGradient><clipPath id="s2E2c"><circle cx="45" cy="36" r="26"/></clipPath></defs><path d="M16 36a29 29 0 0 0 58 0" fill="none" stroke="#c98a3d" stroke-width="4" stroke-linecap="round"/><rect x="42" y="64" width="6" height="12" fill="#c98a3d"/><ellipse cx="45" cy="80" rx="20" ry="6" fill="#a8702a"/><ellipse cx="45" cy="78" rx="20" ry="6" fill="#d9a050"/><circle cx="45" cy="36" r="26" fill="url(#s2E2)"/><g clip-path="url(#s2E2c)"><path d="M30 22q8-6 16-2t4 10q-8 6-14 2t-6-10zM48 42q9-3 15 4t-3 13q-10 0-13-8t1-9z" fill="#58b85a"/></g><ellipse cx="36" cy="24" rx="9" ry="5" fill="#fff" opacity=".28" transform="rotate(-30 36 24)"/></svg>
+              </div>
+              <button class="step02-conclusion-next" id="s2NextBtn" type="button">TIẾP TỤC →</button>
+            </div>
+          </div>
+
+          <!-- Overlay tổng kết Module 1 (dùng chung component kết luận) -->
+          <div class="overlay step02-conclusion module01-summary" id="sumOverlay" aria-hidden="true">
+            <div class="step02-confetti" id="sumConfetti" aria-hidden="true"></div>
+            <div class="step02-conclusion-card" role="dialog" aria-modal="true" aria-labelledby="sumTitle" id="sumCard">
+              <div id="sumAstro" class="summary-astro"></div>
+              <div id="sumMain">
+                <div class="step02-conclusion-badge">
+                  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.1 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" fill="#fff"/></svg>
+                  <span>TỔNG KẾT</span>
+                </div>
+                <h2 class="step02-conclusion-heading" id="sumTitle">EM ĐÃ KHÁM PHÁ TRÁI ĐẤT!</h2>
+                <p class="summary-sub">Em đã hoàn thành 3 bước khám phá. Hãy cùng ghi nhớ những kiến thức quan trọng nhé!</p>
+                <div id="sumItems"></div>
+                <button class="step02-conclusion-next" id="btnCompleteModule" type="button">HOÀN THÀNH →</button>
+              </div>
+              <div class="done-view" id="sumDone" style="display:none">
+                <div class="big">✓</div>
+                <p>Em đã khám phá xong Trái Đất: hình dạng, cực, đường Xích đạo và hai bán cầu.</p>
+                <button class="btn secondary" id="btnCloseSummary" type="button">ĐÓNG</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="steps" id="stepsBar" role="tablist" aria-label="Các bước học"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ============================================================================
+// MODULE 1 — BÀI 27: TRÁI ĐẤT VÀ CÁC ĐỚI KHÍ HẬU — KHÁM PHÁ TRÁI ĐẤT (tnxh3-b27-m01)
+// ============================================================================
+
+// ---------- CẤU HÌNH ASSET (điền URL vào đây; để trống = dùng mô hình dự phòng / bỏ qua audio) ----------
+const ASSETS = {
+  earthModel: "https://3d-cdn.yoolife.com.vn/b3XXIbeUiX8pNcRQKH/b3XXIbeUiX8pNcRQKH.glb",
+  earthTexture: "",
+
+  voice: {
+    TNXH3B27M01S02Voice: "https://assets.yoolife.com.vn/yootek/1792419419471-2789.mp3",
+    TNXH3B27M01S02KetLuan: "https://assets.yoolife.com.vn/yootek/1792419414534-2421.mp3",
+    TNXH3B27M01S03Voice: "https://assets.yoolife.com.vn/yootek/1792419427992-6547.mp3",
+    TNXH3B27M01S03KetLuan: "https://assets.yoolife.com.vn/yootek/1792419423671-7870.mp3",
+    TNXH3B27M01S04Voice: "https://assets.yoolife.com.vn/yootek/1792419436657-1143.mp3",
+    TNXH3B27M01S04KetLuan: "https://assets.yoolife.com.vn/yootek/1792419986199-7923.mp3"
+  }
+};
+
+// ---------- CẤU HÌNH TÍCH HỢP ----------
+const CONFIG = {
+  freeNavigation: false,   // true: mở tự do cả 3 step (cũng bật được bằng ?freeNavigation=1 hoặc postMessage)
+  targetOrigin: "*",       // production: đặt origin của bài giảng tổng (hoặc ?targetOrigin=https://...)
+  moduleId: "tnxh3-b27-m01"
+};
+{
+  const qs = new URLSearchParams(location.search);
+  const f = qs.get('freeNavigation');
+  if (f === '1' || f === 'true') CONFIG.freeNavigation = true;
+  if (qs.get('targetOrigin')) CONFIG.targetOrigin = qs.get('targetOrigin');
+}
+
+// ---------- PRESET CAMERA ----------
+const CAMERA_PRESETS = {
+  shapeOverview:      { position: [0, 0.85, 3.9],  target: [0, 0, 0] },
+  northPoleView:      { position: [0, 1.65, 3.3],  target: [0, 0.1, 0] },
+  southPoleView:      { position: [0, -1.65, 3.3], target: [0, -0.1, 0] },
+  equatorView:        { position: [0, 0.7, 3.9],   target: [0, 0, 0] },
+  hemisphereOverview: { position: [0, 1.0, 3.85],  target: [0, 0, 0] },
+  poleOverview:       { position: [0, 1.2, 3.7],   target: [0, 0, 0] }
+};
+
+const STEP_KEYS = ['step02', 'step03', 'step04'];
+const STEP_NUM = ['01', '02', '03'];
+const STEP_LABELS = ['Hình dạng Trái Đất', 'Cực và Xích đạo', 'Hai bán cầu'];
+const VOICE = [
+  { intro: 'TNXH3B27M01S02Voice', end: 'TNXH3B27M01S02KetLuan' },
+  { intro: 'TNXH3B27M01S03Voice', end: 'TNXH3B27M01S03KetLuan' },
+  { intro: 'TNXH3B27M01S04Voice', end: 'TNXH3B27M01S04KetLuan' }
+];
+const KNOWLEDGE = [
+  ['Trái Đất có dạng hình cầu.', 'Quả địa cầu là mô hình thu nhỏ của Trái Đất.'],
+  ['Cực Bắc và cực Nam là hai điểm ở hai đầu trục của quả địa cầu.', 'Đường Xích đạo là đường tưởng tượng vòng quanh Trái Đất, nằm ở giữa hai cực.'],
+  ['Đường Xích đạo chia Trái Đất thành hai nửa bằng nhau.', 'Nửa phía Bắc gọi là bán cầu Bắc. Nửa phía Nam gọi là bán cầu Nam.']
+];
+const ROT_THRESHOLD = 1.2;           // tổng góc xoay (rad) học sinh cần thực hiện ở Step 02
+const ZONE_LAT = 32 * Math.PI / 180; // vĩ độ đặt vùng nhận nhãn
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- STATE ----------
+const state = {
+  currentStep: 0,
+  narrationEnabled: true,
+  autoRotate: false,
+  isAnimating: false,
+
+  step02: { started: false, globeObserved: false, shapeCorrect: false, knowledgeViewed: false, completed: false },
+  step03: { started: false, northPoleFound: false, southPoleFound: false, equatorFound: false, knowledgeViewed: false, completed: false },
+  step04: { started: false, hemispheresObserved: false, northLabelCorrect: false, southLabelCorrect: false, knowledgeViewed: false, completed: false },
+
+  moduleCompleted: false,
+  earthMode: 'shape',
+  currentVoice: null
+};
+
+const runtime = {
+  phase: 'idle', token: 0, timers: [],
+  rot: { acc: 0, lastAz: 0, lastPol: 0 },
+  userInteracting: false, selectedLabel: null, drag: null, hover: null,
+  introSpin: false, gentleSpin: false, camTween: null, appear: null,
+  sent: {}, ready: false
+};
+
+// ---------- TIỆN ÍCH ----------
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ease = (t) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+// later(ms, fn): chạy fn sau ms mili-giây, tự hủy nếu học sinh đã chuyển step
+function later(ms, fn) {
+  const tk = runtime.token;
+  const id = setTimeout(() => { if (tk === runtime.token) fn(); }, ms);
+  runtime.timers.push(id);
+  return id;
+}
+function clearTimers() { runtime.timers.forEach(clearTimeout); runtime.timers = []; }
+
+// ---------- BIẾN THREE ----------
+let THREE, OrbitControls;
+let scene, camera, renderer, controls, clock;
+let earthGroup, earthSurface, earthMat, earthModel = null, atmosphere;
+let poleMarkersGroup, equatorGroup, hemisphereOverlayGroup, labelAnchorsGroup, axisLine;
+let eqCore, eqGlow, ovN, ovS;
+let eqPoints = [];
+let eqColA, eqColB;
+let P, _n, _p, S;
+let stageW = 1, stageH = 1;
+const poles = { north: null, south: null };
+const labels = {};
+const vis = { axis: 0, poleN: 0, poleS: 0, equator: 0, eqGlow: 0, ovN: 0, ovS: 0, glow: 0 };
+const visT = { axis: 0, poleN: 0, poleS: 0, equator: 0, eqGlow: 0, ovN: 0, ovS: 0, glow: 0 };
+const flash = { N: 0, S: 0, eq: 0 };
+
+// ============================================================================
+// QUẢN LÍ MÔ HÌNH
+// ============================================================================
+async function initThree() {
+  THREE = await import('three');
+  ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+  P = new THREE.Vector3(); _n = new THREE.Vector3(); _p = new THREE.Vector3(); S = { x: 0, y: 0 };
+  eqColA = new THREE.Color(0xd8f4ff); eqColB = new THREE.Color(0xffc94a);
+
+  const host = $('canvasHost');
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.domElement.style.touchAction = 'none';
+  host.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  try { $('stage').style.backgroundImage = `url(${makeSpaceBackground()}), ${SPACE_FALLBACK}`; $('stage').style.backgroundSize = 'cover'; } catch (e) { /* dùng nền dự phòng CSS */ }
+  camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
+  const p0 = CAMERA_PRESETS.shapeOverview;
+  camera.position.set(...p0.position);
+  scene.add(camera);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+  const key = new THREE.DirectionalLight(0xffffff, 2.8);
+  key.position.set(-2.5, 3, 4);
+  camera.add(key);                       // ánh sáng đi theo camera: hình khối luôn rõ
+  const rim = new THREE.DirectionalLight(0xbfe9ff, 0.8);
+  rim.position.set(3, -1, -3);
+  scene.add(rim);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.enablePan = false;
+  controls.minDistance = 2.2;            // không cho vào bên trong quả địa cầu
+  controls.maxDistance = 7;
+  controls.rotateSpeed = 0.7;
+  controls.zoomSpeed = 0.8;
+  controls.autoRotateSpeed = 1.4;
+  controls.target.set(...p0.target);
+  controls.addEventListener('start', () => { runtime.userInteracting = true; $('stage').classList.add('dragging'); });
+  controls.addEventListener('end', () => { runtime.userInteracting = false; $('stage').classList.remove('dragging'); });
+  controls.addEventListener('change', handleGlobeObservation);
+  controls.update();
+
+  clock = new THREE.Clock();
+  new ResizeObserver(onResize).observe($('canvasHost'));
+  onResize();
+  bindCanvasPointer();
+}
+
+function onResize() {
+  if (!renderer) return;
+  const host = $('canvasHost');
+  const w = host.clientWidth, h = host.clientHeight;
+  if (!w || !h) return;
+  stageW = w; stageH = h;
+  renderer.setSize(w, h, false);
+  const aspect = w / h;
+  camera.aspect = aspect;
+  camera.fov = aspect < 1 ? (2 * Math.atan(Math.tan(20 * Math.PI / 180) * (1 + 0.3 * Math.min(1, (1 - aspect) * 5)) / aspect) * 180 / Math.PI) : 40;
+  if (aspect < 0.95) camera.setViewOffset(w, h, 0, h * 0.09, w, h); else camera.clearViewOffset();
+  camera.updateProjectionMatrix();
+}
+
+// Nền vũ trụ vẽ bằng canvas (tĩnh, không phụ thuộc mạng): tinh vân nhiễu fractal, bụi tối, sao phân bố không đều
+const SPACE_FALLBACK = 'radial-gradient(ellipse at 30% 35%,#0a2440,transparent 60%),linear-gradient(180deg,#02060f 0%,#061a30 60%,#04121f 100%)';
+function makeSpaceBackground() {
+  const W = 1600, H = 900;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const bg = g.createRadialGradient(W * 0.4, H * 0.45, 40, W * 0.5, H * 0.5, W * 0.8);
+  bg.addColorStop(0, '#071b32'); bg.addColorStop(.55, '#041020'); bg.addColorStop(1, '#01050c');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+
+  let seed = 11;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const gw = 64, gh = 40, lat = [];
+  for (let i = 0; i < gw * gh; i++) lat.push(rnd());
+  const L = (x, y) => lat[(((y % gh) + gh) % gh) * gw + (((x % gw) + gw) % gw)];
+  const vn = (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const sx = xf * xf * (3 - 2 * xf), sy = yf * yf * (3 - 2 * yf);
+    const a = L(xi, yi), b = L(xi + 1, yi), c2 = L(xi, yi + 1), d = L(xi + 1, yi + 1);
+    return a + (b - a) * sx + (c2 - a) * sy + (a - b - c2 + d) * sx * sy;
+  };
+  const fbm = (x, y) => { let v = 0, a = .5, f = 1; for (let o = 0; o < 5; o++) { v += a * vn(x * f, y * f); f *= 2; a *= .5; } return v; };
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+  // tinh vân xanh dương / xanh ngọc rất nhẹ, tập trung theo một dải chéo + bụi tối
+  const nw = 320, nh = 180;
+  const neb = document.createElement('canvas'); neb.width = nw; neb.height = nh;
+  const nctx = neb.getContext('2d'), dust = document.createElement('canvas');
+  dust.width = nw; dust.height = nh;
+  const dctx = dust.getContext('2d');
+  const nimg = nctx.createImageData(nw, nh), dimg = dctx.createImageData(nw, nh);
+  for (let y = 0; y < nh; y++) for (let x = 0; x < nw; x++) {
+    const u = x / nw * 5, v = y / nh * 3;
+    const n = fbm(u + 3, v + 1.5);
+    const bandC = 0.62 - (u / 5) * 0.4, band = Math.exp(-Math.pow(v / 3 - bandC, 2) * 9);
+    const m = clamp01((n - 0.42) * 2.4) * (0.25 + 0.75 * band);
+    const t = clamp01(fbm(u * 1.3 + 20, v * 1.3) * 1.6 - 0.3);
+    const i = (y * nw + x) * 4;
+    nimg.data[i] = 20 + 20 * t; nimg.data[i + 1] = 95 + 40 * (1 - t); nimg.data[i + 2] = 140 + 50 * t;
+    nimg.data[i + 3] = m * 0.34 * 255;
+    const dd = clamp01((fbm(u * 1.8 + 9, v * 1.8 + 4) - 0.55) * 3.2);
+    dimg.data[i] = 0; dimg.data[i + 1] = 2; dimg.data[i + 2] = 8; dimg.data[i + 3] = dd * 0.6 * 255;
+  }
+  nctx.putImageData(nimg, 0, 0); dctx.putImageData(dimg, 0, 0);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.globalCompositeOperation = 'lighter'; g.drawImage(neb, 0, 0, W, H);
+  g.globalCompositeOperation = 'source-over'; g.drawImage(dust, 0, 0, W, H);
+
+  // sao: đa số rất nhỏ, vài sao sáng có quầng; mật độ thay đổi theo vùng
+  const tints = ['200,222,255', '255,255,255', '255,238,214', '170,200,255'];
+  for (let i = 0; i < 4200; i++) {
+    const x = rnd() * W, y = rnd() * H;
+    if (rnd() > 0.2 + 0.9 * fbm(x / W * 7 + 40, y / H * 7)) continue;
+    const s = 0.35 + Math.pow(rnd(), 7) * 2.1;
+    const a = 0.3 + rnd() * 0.7, col = tints[Math.floor(rnd() * tints.length)];
+    if (s > 1.2) {
+      const rg = g.createRadialGradient(x, y, 0, x, y, s * 6);
+      rg.addColorStop(0, `rgba(${col},${(a * 0.35).toFixed(2)})`); rg.addColorStop(1, `rgba(${col},0)`);
+      g.fillStyle = rg; g.fillRect(x - s * 6, y - s * 6, s * 12, s * 12);
+    }
+    g.fillStyle = `rgba(${col},${a.toFixed(2)})`;
+    g.beginPath(); g.arc(x, y, s, 0, Math.PI * 2); g.fill();
+  }
+  const vg = g.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.75);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.5)');
+  g.fillStyle = vg; g.fillRect(0, 0, W, H);
+  return c.toDataURL('image/jpeg', 0.9);
+}
+
+function makeOceanTexture() {
+  const W = 2048, H = 1024;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#2680c4'); grad.addColorStop(.5, '#3a97dc'); grad.addColorStop(1, '#2680c4');
+  g.fillStyle = grad; g.fillRect(0, 0, W, H);
+  // vệt sáng nhẹ cho bề mặt đại dương (không vẽ lục địa)
+  for (let i = 0; i < 90; i++) {
+    const x = Math.random() * W, y = Math.random() * H, r = 40 + Math.random() * 120;
+    const rg = g.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, 'rgba(255,255,255,.05)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  // lưới tham chiếu nhẹ: kinh tuyến mỗi 30°, vĩ tuyến ±30°, ±60° (không vẽ vĩ tuyến 0°)
+  g.strokeStyle = 'rgba(255,255,255,.30)'; g.lineWidth = 2;
+  for (let i = 0; i <= 12; i++) { const x = (i / 12) * W; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+  [-60, -30, 30, 60].forEach(lat => { const y = (0.5 - lat / 180) * H; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); });
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+
+function makeGlowTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const rg = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(.35, 'rgba(255,255,255,.55)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = rg; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+function createEarth() {
+  earthGroup = new THREE.Group();
+  scene.add(earthGroup);
+
+  earthMat = new THREE.MeshStandardMaterial({ map: makeOceanTexture(), roughness: 0.62, metalness: 0.0 });
+  earthSurface = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 64), earthMat);
+  earthGroup.add(earthSurface);
+
+  // Hào quang mỏng quanh quả địa cầu (tạo chiều sâu, sáng lên khi trả lời đúng)
+  atmosphere = new THREE.Mesh(
+    new THREE.SphereGeometry(1.07, 64, 32),
+    new THREE.ShaderMaterial({
+      uniforms: { uI: { value: 0.35 }, uColor: { value: new THREE.Color(0x9be6ff) } },
+      vertexShader: 'varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+      fragmentShader: 'varying vec3 vN; uniform float uI; uniform vec3 uColor; void main(){ float i = pow(max(0.0, 0.62 - dot(vN, vec3(0.0,0.0,1.0))), 3.0); gl_FragColor = vec4(uColor, 1.0) * i * uI; }',
+      side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
+    })
+  );
+  scene.add(atmosphere);
+
+  createAxis();
+  createPoleMarkers();
+  createEquator();
+  createHemisphereOverlays();
+
+  labelAnchorsGroup = new THREE.Group();
+  earthGroup.add(labelAnchorsGroup);
+  initLabels();
+}
+
+function createAxis() {
+  const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -1.38, 0), new THREE.Vector3(0, 1.38, 0)]);
+  axisLine = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }));
+  axisLine.visible = false;
+  earthGroup.add(axisLine);
+}
+
+function createPoleMarkers() {
+  poleMarkersGroup = new THREE.Group();
+  earthGroup.add(poleMarkersGroup);
+  const glowTex = makeGlowTexture();
+  ['north', 'south'].forEach(k => {
+    const y = k === 'north' ? 1.012 : -1.012;
+    const g = new THREE.Group(); g.position.set(0, y, 0); g.visible = false;
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.03, 20, 12), new THREE.MeshBasicMaterial({ color: 0xffd34d, transparent: true, opacity: 0 }));
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffe38a, transparent: true, opacity: 0, depthWrite: false }));
+    halo.scale.set(0.22, 0.22, 1);
+    g.add(core, halo);
+    poleMarkersGroup.add(g);
+    poles[k] = { group: g, core, halo, found: false };
+  });
+}
+
+function createEquator() {
+  equatorGroup = new THREE.Group();
+  equatorGroup.rotation.x = Math.PI / 2;   // vòng nằm trong mặt phẳng XZ, vuông góc với trục Bắc–Nam
+  equatorGroup.visible = false;
+  eqCore = new THREE.Mesh(new THREE.TorusGeometry(1.006, 0.0065, 10, 256), new THREE.MeshBasicMaterial({ color: 0xd8f4ff, transparent: true, opacity: 0 }));
+  eqGlow = new THREE.Mesh(new THREE.TorusGeometry(1.006, 0.028, 12, 256),
+    new THREE.MeshBasicMaterial({ color: 0xffc94a, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  equatorGroup.add(eqCore, eqGlow);
+  earthGroup.add(equatorGroup);
+  eqPoints = [];
+  for (let i = 0; i < 180; i++) {
+    const a = (i / 180) * Math.PI * 2;
+    eqPoints.push(new THREE.Vector3(Math.cos(a) * 1.006, 0, Math.sin(a) * 1.006));
+  }
+}
+
+function createHemisphereOverlays() {
+  hemisphereOverlayGroup = new THREE.Group();
+  const mk = (color, thetaStart) => {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(1.009, 96, 48, 0, Math.PI * 2, thetaStart, Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })
+    );
+    m.visible = false;
+    hemisphereOverlayGroup.add(m);
+    return m;
+  };
+  ovN = mk(0x57b4ff, 0);                 // nửa phía Bắc: xanh dương nhạt
+  ovS = mk(0xffb347, Math.PI / 2);       // nửa phía Nam: cam nhạt
+  earthGroup.add(hemisphereOverlayGroup);
+}
+
+// Bật/tắt các nhóm hiệu ứng theo chế độ (không tạo lại mô hình)
+function setEarthMode(mode) {
+  state.earthMode = mode;
+  const set = (o) => Object.assign(visT, o);
+  switch (mode) {
+    case 'shape':
+      set({ axis: 0, poleN: 0, poleS: 0, equator: 0, eqGlow: 0, ovN: 0, ovS: 0, glow: 0 });
+      poles.north.found = poles.south.found = false; break;
+    case 'poles':
+      set({ axis: 1, poleN: 0, poleS: 0, equator: 0, eqGlow: 0, ovN: 0, ovS: 0, glow: 0 });
+      poles.north.found = poles.south.found = false; break;
+    case 'poles-final':
+      set({ axis: 1, poleN: 1, poleS: 1, equator: 1, eqGlow: 1, ovN: 0, ovS: 0, glow: 0 });
+      poles.north.found = poles.south.found = true; break;
+    case 'hemi-intro':
+      set({ axis: .6, poleN: 1, poleS: 1, equator: 1, eqGlow: 1, ovN: 0, ovS: 0, glow: 0 });
+      poles.north.found = poles.south.found = true; break;
+    case 'hemi-final':
+      set({ axis: .6, poleN: 1, poleS: 1, equator: 1, eqGlow: 1, ovN: 1, ovS: 1, glow: 0 });
+      poles.north.found = poles.south.found = true; break;
+  }
+}
+
+function updateEffects(dt, t) {
+  const k = Math.min(1, dt * 5);
+  for (const key in vis) vis[key] += (visT[key] - vis[key]) * k;
+  for (const key in flash) flash[key] = Math.max(0, flash[key] - dt * 0.9);
+  const pulse = REDUCED ? 0.5 : 0.5 + 0.5 * Math.sin(t * 4);
+
+  axisLine.material.opacity = 0.8 * vis.axis; axisLine.visible = vis.axis > 0.02;
+  for (const w of ['north', 'south']) {
+    const p = poles[w], v = w === 'north' ? vis.poleN : vis.poleS;
+    p.group.visible = v > 0.02;
+    p.core.material.opacity = v;
+    p.core.scale.setScalar(p.found ? 1 : 0.75);
+    p.halo.material.opacity = v * (p.found ? 0.5 : 0.45 + 0.5 * pulse);
+    const s = p.found ? 0.2 : 0.22 + 0.1 * pulse;
+    p.halo.scale.set(s, s, 1);
+  }
+  const eg = Math.min(1, vis.eqGlow + flash.eq);
+  equatorGroup.visible = vis.equator > 0.02;
+  eqCore.material.opacity = 0.9 * vis.equator;
+  eqCore.material.color.copy(eqColA).lerp(eqColB, eg);
+  eqGlow.material.opacity = vis.equator * eg * (0.45 + 0.2 * pulse);
+
+  ovN.visible = vis.ovN > 0.02 || flash.N > 0.02;
+  ovS.visible = vis.ovS > 0.02 || flash.S > 0.02;
+  ovN.material.opacity = 0.36 * vis.ovN + 0.28 * flash.N + (runtime.hover === 'north' ? 0.2 : 0);
+  ovS.material.opacity = 0.5 * vis.ovS + 0.28 * flash.S + (runtime.hover === 'south' ? 0.2 : 0);
+  atmosphere.material.uniforms.uI.value = 0.35 + 1.6 * vis.glow * (0.8 + 0.2 * pulse);
+}
+
+// ============================================================================
+// CAMERA
+// ============================================================================
+function setAnimating(b) {
+  state.isAnimating = b;
+  $('stage').classList.toggle('busy', b);
+}
+
+function moveCameraTo(position, target, duration = 1000) {
+  const toPos = new THREE.Vector3(...(Array.isArray(position) ? position : position.toArray()));
+  const toT = new THREE.Vector3(...(Array.isArray(target) ? target : target.toArray()));
+  if (runtime.camTween && runtime.camTween.resolve) runtime.camTween.resolve();
+  const fromDir = camera.position.clone().normalize();
+  const toDir = toPos.clone().normalize();
+  return new Promise(resolve => {
+    runtime.camTween = {
+      fromDir, toDir, fromR: camera.position.length(), toR: toPos.length(),
+      fromT: controls.target.clone(), toT,
+      q: new THREE.Quaternion().setFromUnitVectors(fromDir, toDir),
+      t0: performance.now(), dur: REDUCED ? 1 : Math.max(1, duration), resolve
+    };
+    controls.enabled = false;
+    setAnimating(true);
+  });
+}
+function moveCameraToPreset(name, duration = 1000) {
+  const p = CAMERA_PRESETS[name];
+  return moveCameraTo(p.position, p.target, duration);
+}
+function updateCameraTween(now) {
+  const tw = runtime.camTween;
+  if (!tw) return;
+  const t = Math.min(1, (now - tw.t0) / tw.dur), e = ease(t);
+  const q = new THREE.Quaternion().slerp(tw.q, e);
+  const dir = tw.fromDir.clone().applyQuaternion(q);
+  camera.position.copy(dir.multiplyScalar(tw.fromR + (tw.toR - tw.fromR) * e));
+  controls.target.lerpVectors(tw.fromT, tw.toT, e);
+  if (t >= 1) {
+    runtime.camTween = null;
+    controls.enabled = true;
+    setAnimating(false);
+    tw.resolve();
+  }
+}
+function resetCamera() {
+  const name = ['shapeOverview', 'poleOverview', 'hemisphereOverview'][state.currentStep] || 'shapeOverview';
+  moveCameraToPreset(name, 900);
+}
+function setAutoRotate(enabled) {
+  state.autoRotate = !!enabled;
+  controls.autoRotate = state.autoRotate && !REDUCED;
+  $('btnAutorotate').setAttribute('aria-pressed', state.autoRotate ? 'true' : 'false');
+}
+
+// ============================================================================
+// NHÃN 2D BÁM THEO MARKER 3D
+// ============================================================================
+function facingPoint(lat, out) {
+  const hx = camera.position.x, hz = camera.position.z;
+  const l = Math.hypot(hx, hz) || 1;
+  const cl = Math.cos(lat);
+  return out.set(hx / l * cl, Math.sin(lat), hz / l * cl);
+}
+function initLabels() {
+  labels.poleN = { el: $('tagPoleN'), on: false, tf: 'translate(18px,-50%)', get: o => poles.north.group.getWorldPosition(o) };
+  labels.poleS = { el: $('tagPoleS'), on: false, tf: 'translate(18px,-50%)', get: o => poles.south.group.getWorldPosition(o) };
+  labels.equator = { el: $('tagEq'), on: false, tf: 'translate(-50%,-150%)', get: o => facingPoint(0, o) };
+  labels.hemiN = { el: $('zoneN'), on: false, tf: 'translate(-50%,-50%)', get: o => facingPoint(ZONE_LAT, o) };
+  labels.hemiS = { el: $('zoneS'), on: false, tf: 'translate(-50%,-50%)', get: o => facingPoint(-ZONE_LAT, o) };
+  resetZones();
+}
+function project(world, out) {
+  _p.copy(world).project(camera);
+  out.x = (_p.x * 0.5 + 0.5) * stageW;
+  out.y = (-_p.y * 0.5 + 0.5) * stageH;
+  return out;
+}
+function setLabel(name, on) { labels[name].on = !!on; }
+function resetLabels() {
+  Object.values(labels).forEach(l => { l.on = false; l.el.classList.remove('show'); });
+  resetZones();
+}
+function updateLabels() {
+  camera.updateMatrixWorld();
+  for (const l of Object.values(labels)) {
+    if (!l.on) { l.el.classList.remove('show'); continue; }
+    l.get(P);
+    _n.copy(P).normalize();
+    const facing = camera.position.dot(_n) > 0.93;       // ẩn khi nằm phía sau quả địa cầu
+    project(P, S);
+    const inside = S.x > -40 && S.x < stageW + 40 && S.y > -40 && S.y < stageH + 40;
+    l.el.style.transform = `translate(${S.x.toFixed(1)}px,${S.y.toFixed(1)}px) ${l.tf}`;
+    l.el.classList.toggle('show', facing && inside);
+  }
+}
+
+// ============================================================================
+// HIT-TEST (không cho chọn điểm ở mặt khuất)
+// ============================================================================
+function hitRadius() { return window.matchMedia('(pointer:coarse)').matches ? 40 : 30; }
+function stageXY(cx, cy) {
+  const r = renderer.domElement.getBoundingClientRect();
+  return { x: cx - r.left, y: cy - r.top };
+}
+function poleHit(which, x, y) {
+  camera.updateMatrixWorld();
+  poles[which].group.getWorldPosition(P);
+  _n.copy(P).normalize();
+  if (camera.position.dot(_n) < 0.93) return false;
+  project(P, S);
+  return Math.hypot(S.x - x, S.y - y) <= hitRadius();
+}
+function equatorHit(x, y) {
+  camera.updateMatrixWorld(); earthGroup.updateMatrixWorld(true);
+  let best = 1e9;
+  for (const lp of eqPoints) {
+    P.copy(lp); earthGroup.localToWorld(P);
+    _n.copy(P).normalize();
+    if (camera.position.dot(_n) < 0.96) continue;
+    project(P, S);
+    const d = Math.hypot(S.x - x, S.y - y);
+    if (d < best) best = d;
+  }
+  return best <= hitRadius() - 6;
+}
+function hemisphereAtPoint(cx, cy) {
+  const { x, y } = stageXY(cx, cy);
+  if (x < 0 || y < 0 || x > stageW || y > stageH) return null;   // ngoài canvas: không tính
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera({ x: (x / stageW) * 2 - 1, y: -(y / stageH) * 2 + 1 }, camera);
+  const hit = ray.ray.intersectSphere(new THREE.Sphere(new THREE.Vector3(), 1.0), P);
+  if (!hit) return null;
+  earthGroup.updateMatrixWorld(true);
+  earthGroup.worldToLocal(P);
+  if (Math.abs(P.y) < 0.012) return null;
+  return P.y > 0 ? 'north' : 'south';
+}
+function zoneAt(cx, cy) {
+  for (const k of ['north', 'south']) {
+    const el = labels[k === 'north' ? 'hemiN' : 'hemiS'].el;
+    if (!el.classList.contains('show') || el.classList.contains('done')) continue;
+    const r = el.getBoundingClientRect();
+    if (cx >= r.left - 14 && cx <= r.right + 14 && cy >= r.top - 14 && cy <= r.bottom + 14) return k;
+  }
+  return null;
+}
+function resolveTarget(cx, cy) { return zoneAt(cx, cy) || hemisphereAtPoint(cx, cy); }
+
+// ============================================================================
+// CON TRỎ TRÊN CANVAS: phân biệt chạm (chọn điểm) và kéo (xoay)
+// ============================================================================
+function bindCanvasPointer() {
+  const cv = renderer.domElement;
+  let pd = null;
+  cv.addEventListener('pointerdown', e => {
+    pd = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId };
+    // tạm dừng Tự xoay khi học sinh bắt đầu thao tác chọn điểm
+    if (state.autoRotate && ['s3-north', 's3-south', 's3-equator', 's4-drag'].includes(runtime.phase)) setAutoRotate(false);
+  });
+  cv.addEventListener('pointerup', e => {
+    if (pd && pd.id === e.pointerId && Math.hypot(e.clientX - pd.x, e.clientY - pd.y) < 7) handleCanvasTap(e.clientX, e.clientY);
+    pd = null;
+  });
+  cv.addEventListener('pointercancel', () => { pd = null; });
+}
+function handleCanvasTap(cx, cy) {
+  if (!runtime.ready) return;
+  const { x, y } = stageXY(cx, cy);
+  switch (runtime.phase) {
+    case 's3-north': case 's3-south': handlePoleSelection(x, y); break;
+    case 's3-equator': handleEquatorSelection(x, y); break;
+    case 's4-drag':
+      if (runtime.selectedLabel) handleHemisphereDrop(runtime.selectedLabel, cx, cy);
+      break;
+  }
+}
+
+// ============================================================================
+// UI DÙNG CHUNG
+// ============================================================================
+const panelEl = () => $('panel');
+function showPanel(o) {
+  const { kicker = '', title = '', body = '', extra = '', buttons = [], compact = false, foot = '', footLabel = 'THAO TÁC CHÍNH' } = o;
+  restoreTray();
+  const p = panelEl();
+  p.className = 'panel show' + (compact ? ' compact' : '');
+  p.innerHTML =
+    (kicker ? `<div class="p-kicker">${esc(kicker)}</div>` : '') +
+    (title ? `<div class="p-title">${esc(title)}</div>` : '') +
+    (body ? `<p class="p-body">${esc(body)}</p>` : '') +
+    extra + '<div class="p-actions"></div>' +
+    (foot ? `<div class="p-foot"><b>${esc(footLabel)}</b><span>${esc(foot)}</span></div>` : '');
+  const act = p.querySelector('.p-actions');
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn' + (b.secondary ? ' secondary' : '') + (b.cls ? ' ' + b.cls : '');
+    btn.textContent = b.label;
+    if (b.id) btn.id = b.id;
+    btn.addEventListener('click', b.onClick);
+    act.appendChild(btn);
+  });
+  return p;
+}
+function addPanelButton(b) {
+  const act = panelEl().querySelector('.p-actions');
+  if (!act) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn' + (b.secondary ? ' secondary' : '') + (b.cls ? ' ' + b.cls : '');
+  btn.textContent = b.label;
+  if (b.id) btn.id = b.id;
+  btn.addEventListener('click', b.onClick);
+  act.appendChild(btn);
+  return btn;
+}
+// Khay nhãn kéo thả được đặt trong panel phải khi hoạt động Step 04; trả về sân khấu trước khi panel bị xóa nội dung
+function restoreTray() { const t = $('tray'), st = $('stage'); if (t && t.parentElement !== st) st.appendChild(t); }
+function hidePanel() { restoreTray(); const p = panelEl(); p.className = 'panel'; p.innerHTML = ''; }
+function setHint(icon, text) { $('hintIcon').textContent = icon; $('hintText').textContent = text; }
+let toastTimer = null;
+function toast(msg, kind = 'info', ms = 2200) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + kind;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+function hideOverlays() {
+  $('knowOverlay').classList.remove('show'); $('knowOverlay').setAttribute('aria-hidden', 'true');
+  $('sumOverlay').classList.remove('show'); $('sumOverlay').setAttribute('aria-hidden', 'true');
+  $('s2Overlay').classList.remove('show'); $('s2Overlay').setAttribute('aria-hidden', 'true');
+}
+
+// ============================================================================
+// AUDIO / VOICE (không TTS, không SpeechSynthesis, không âm thanh tự tạo)
+// ============================================================================
+let voiceEl = null;
+function stopVoice() {
+  if (voiceEl) {
+    try { voiceEl.pause(); voiceEl.currentTime = 0; } catch (e) { /* bỏ qua */ }
+    voiceEl.onerror = null;
+    voiceEl = null;
+  }
+}
+function playVoice(voiceKey) {
+  state.currentVoice = voiceKey;
+  stopVoice();                                   // không phát chồng
+  if (!state.narrationEnabled) return;
+  const url = ASSETS.voice[voiceKey];
+  if (!url) return;                              // URL trống: bỏ qua, không lỗi
+  try {
+    const a = new Audio(url);
+    a.onerror = () => { if (voiceEl === a) voiceEl = null; };
+    voiceEl = a;
+    const pr = a.play();
+    if (pr && pr.catch) pr.catch(() => { if (voiceEl === a) voiceEl = null; });
+  } catch (e) { voiceEl = null; }
+}
+function toggleNarration() {
+  state.narrationEnabled = !state.narrationEnabled;
+  const b = $('btnNarration');
+  b.setAttribute('aria-pressed', state.narrationEnabled ? 'true' : 'false');
+  b.firstChild.textContent = state.narrationEnabled ? '🔊 ' : '🔇 ';
+  if (!state.narrationEnabled) stopVoice();
+  else if (state.currentVoice) playVoice(state.currentVoice);   // bật lại: nghe lại voice hiện tại
+}
+
+// ============================================================================
+// TÍCH HỢP BÀI GIẢNG TỔNG (postMessage, mỗi sự kiện chỉ gửi một lần)
+// ============================================================================
+function notifyParent(id, payload) {
+  if (runtime.sent[id]) return;
+  runtime.sent[id] = true;
+  try {
+    if (window.parent && window.parent !== window) window.parent.postMessage(payload, CONFIG.targetOrigin);
+  } catch (e) { /* không nhúng iframe hoặc bị chặn: bỏ qua */ }
+}
+function setFreeNavigation(v) { CONFIG.freeNavigation = !!v; updateStepNavigation(); }
+window.addEventListener('message', (ev) => {
+  if (CONFIG.targetOrigin !== '*' && ev.origin !== CONFIG.targetOrigin) return;
+  const d = ev.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.type === 'SET_FREE_NAVIGATION') setFreeNavigation(d.value);
+  else if (d.type === 'GO_TO_STEP' && typeof d.step === 'number') enterStep(d.step);
+});
+
+// ============================================================================
+// ĐIỀU HƯỚNG STEP
+// ============================================================================
+function isStepUnlocked(i) {
+  if (CONFIG.freeNavigation || i === 0) return true;
+  return !!state[STEP_KEYS[i - 1]].completed;
+}
+function updateStepNavigation() {
+  const bar = $('stepsBar');
+  if (!bar.children.length) {
+    bar.innerHTML = STEP_KEYS.map((k, i) =>
+      `<button class="step" data-step="${i}" role="tab" type="button"><b></b><span>${esc(STEP_LABELS[i])}</span></button>`).join('');
+  }
+  [...bar.children].forEach((btn, i) => {
+    const locked = !isStepUnlocked(i), done = state[STEP_KEYS[i]].completed;
+    btn.setAttribute('aria-pressed', i === state.currentStep ? 'true' : 'false');
+    btn.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    btn.classList.toggle('locked', locked);
+    btn.classList.toggle('done', done);
+    btn.querySelector('b').textContent = STEP_NUM[i];
+    btn.querySelector('span').textContent = STEP_LABELS[i];
+  });
+  $('btnPrevStep').disabled = state.currentStep <= 0;
+  $('btnNextStep').disabled = state.currentStep >= 2 || !isStepUnlocked(state.currentStep + 1);
+  const ab = bar.children[state.currentStep];
+  if (ab && ab.scrollIntoView) ab.scrollIntoView({ block: 'nearest', inline: 'center', behavior: REDUCED ? 'auto' : 'smooth' });
+}
+
+function enterStep(i) {
+  if (i < 0 || i > 2) return;
+  if (!isStepUnlocked(i)) { toast('Hãy hoàn thành bước hiện tại để mở bước tiếp theo.', 'info'); return; }
+  runtime.token++; clearTimers();
+  cancelDrag(); stopVoice(); state.currentVoice = null;
+  hideOverlays(); hidePanel(); hideTray(); resetLabels();
+  runtime.introSpin = false; runtime.gentleSpin = false; runtime.selectedLabel = null; runtime.hover = null;
+  flash.N = flash.S = flash.eq = 0;
+  visT.glow = 0;
+  state.currentStep = i;
+  renderStepUI(i);
+  updateStepNavigation();
+}
+
+function renderStepUI(i, forceIntro = false) {
+  const st = state[STEP_KEYS[i]];
+  if (st.completed && !forceIntro) return renderReview(i);
+  if (i === 0) renderStep02Intro();
+  else if (i === 1) renderStep03Intro();
+  else renderStep04Intro();
+}
+
+function completeStep(i) {
+  const st = state[STEP_KEYS[i]];
+  visT.glow = 0;
+  if (!st.completed) {
+    st.completed = true;
+    notifyParent('step' + i, { type: 'MODULE_STEP_COMPLETE', module: CONFIG.moduleId, step: i + 1, activity: i + 2 });
+  }
+  updateStepNavigation();
+}
+
+function renderReview(i) {
+  runtime.phase = 'review';
+  if (i === 0) { setEarthMode('shape'); moveCameraToPreset('shapeOverview'); }
+  else if (i === 1) {
+    setEarthMode('poles-final'); moveCameraToPreset('poleOverview');
+    setLabel('poleN', true); setLabel('poleS', true); setLabel('equator', true);
+  } else {
+    setEarthMode('hemi-final'); moveCameraToPreset('hemisphereOverview');
+    fillZone('north'); fillZone('south'); setLabel('hemiN', true); setLabel('hemiS', true);
+  }
+  setHint('↻', 'Em có thể xoay quả địa cầu để quan sát lại.');
+  const buttons = [{ label: 'XEM LẠI KẾT LUẬN', onClick: () => showKnowledgeOverlay(i, { review: true }) }];
+  if (i === 2 && state.step02.completed && state.step03.completed) buttons.push({ label: 'XEM TỔNG KẾT', secondary: true, onClick: showModuleSummary });
+  buttons.push({ label: 'LÀM LẠI HOẠT ĐỘNG', secondary: true, onClick: () => redoActivity(i) });
+  showPanel({ kicker: 'ĐÃ HOÀN THÀNH ✓', body: 'Em đã hoàn thành bước này. Em có thể xem lại kết luận hoặc làm lại hoạt động.', buttons });
+}
+function redoActivity(i) {
+  runtime.token++; clearTimers();
+  cancelDrag(); stopVoice(); state.currentVoice = null; resetLabels(); hideTray(); hidePanel();
+  const st = state[STEP_KEYS[i]];
+  Object.keys(st).forEach(k => { if (k !== 'completed' && k !== 'knowledgeViewed') st[k] = false; });
+  renderStepUI(i, true);
+}
+
+// ============================================================================
+// STEP 02 — HÌNH DẠNG TRÁI ĐẤT
+// ============================================================================
+function renderStep02Intro() {
+  runtime.phase = 's2-intro';
+  setEarthMode('shape');
+  moveCameraToPreset('shapeOverview', 700);
+  startAppear();
+  runtime.introSpin = !REDUCED;
+  setHint('↻', 'Chạm và kéo để xoay quả địa cầu.');
+  showPanel({
+    kicker: 'NHIỆM VỤ KHÁM PHÁ',
+    body: 'Em hãy xoay quả địa cầu để quan sát hình dạng Trái Đất từ nhiều hướng.',
+    foot: 'Xoay 360° • Chọn đáp án',
+    buttons: [{ label: 'BẮT ĐẦU KHÁM PHÁ', onClick: startStep02 }]
+  });
+}
+function startStep02() {
+  const s = state.step02;
+  s.started = true; s.globeObserved = false; s.shapeCorrect = false;
+  runtime.introSpin = false;
+  runtime.rot = { acc: 0, lastAz: controls.getAzimuthalAngle(), lastPol: controls.getPolarAngle() };
+  playVoice(VOICE[0].intro);
+  beginObservation();
+}
+function beginObservation() {
+  runtime.phase = 's2-observe';
+  setHint('↻', 'Kéo để xoay quả địa cầu.');
+  showPanel({
+    compact: true, kicker: 'KÉO ĐỂ XOAY',
+    body: 'Hãy xoay quả địa cầu và quan sát Trái Đất từ nhiều hướng.',
+    extra: '<div class="meter"><span id="rotBar"></span></div>',
+    buttons: [{ label: 'EM ĐÃ QUAN SÁT', id: 'btnObserved', onClick: onObservedClick }]
+  });
+  refreshObserveUI();
+}
+function refreshObserveUI() {
+  const bar = $('rotBar'), btn = $('btnObserved');
+  if (bar) bar.style.width = Math.round(Math.min(1, runtime.rot.acc / ROT_THRESHOLD) * 100) + '%';
+  if (btn) {
+    btn.classList.toggle('is-wait', !state.step02.globeObserved);
+    btn.classList.toggle('pulse', state.step02.globeObserved);
+  }
+}
+// Ghi nhận thao tác xoay thực tế của học sinh qua OrbitControls
+function handleGlobeObservation() {
+  if (runtime.phase !== 's2-observe' || !runtime.userInteracting) {
+    if (controls) { runtime.rot.lastAz = controls.getAzimuthalAngle(); runtime.rot.lastPol = controls.getPolarAngle(); }
+    return;
+  }
+  const az = controls.getAzimuthalAngle(), pol = controls.getPolarAngle();
+  let d = Math.abs(az - runtime.rot.lastAz);
+  if (d > Math.PI) d = Math.PI * 2 - d;
+  runtime.rot.acc += d + Math.abs(pol - runtime.rot.lastPol);
+  runtime.rot.lastAz = az; runtime.rot.lastPol = pol;
+  if (runtime.rot.acc >= ROT_THRESHOLD && !state.step02.globeObserved) {
+    state.step02.globeObserved = true;
+    setHint('👆', 'Tốt lắm! Em bấm "Em đã quan sát" nhé.');
+  }
+  refreshObserveUI();
+}
+function onObservedClick() {
+  if (!state.step02.globeObserved) { toast('Hãy thử xoay quả địa cầu trước nhé', 'info'); return; }
+  showShapeQuiz();
+}
+
+const SHAPES = [
+  { key: 'cube', label: 'Hình lập phương', svg: '<svg viewBox="0 0 64 64" aria-hidden="true"><polygon points="32,6 56,19 32,32 8,19" fill="#f4b183"/><polygon points="8,19 32,32 32,58 8,45" fill="#e08b55"/><polygon points="56,19 32,32 32,58 56,45" fill="#c96f3b"/></svg>' },
+  { key: 'sphere', label: 'Hình cầu', svg: '<svg viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="shg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#8fd0f7"/><stop offset="1" stop-color="#1f6fb0"/></radialGradient></defs><circle cx="32" cy="32" r="25" fill="url(#shg)"/></svg>' },
+  { key: 'cylinder', label: 'Hình trụ dẹt', svg: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 26v10c0 5 12 9 26 9s26-4 26-9V26c0 5-12 9-26 9S6 31 6 26z" fill="#6fa3d0"/><ellipse cx="32" cy="26" rx="26" ry="9" fill="#a9cdea"/></svg>' }
+];
+function showShapeQuiz() {
+  runtime.phase = 's2-quiz';
+  setHint('👆', 'Chọn hình giống Trái Đất.');
+  const opts = SHAPES.map(s => `<button class="opt" type="button" data-shape="${s.key}">${s.svg}<span>${esc(s.label)}</span></button>`).join('');
+  showPanel({ kicker: 'NHẬN BIẾT HÌNH DẠNG', title: 'Trái Đất có hình dạng giống hình nào?', extra: `<div class="opts" id="shapeOpts">${opts}</div><div class="fb" id="shapeFb"></div>` });
+  panelEl().querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => handleShapeAnswer(b)));
+}
+function handleShapeAnswer(btn) {
+  if (runtime.phase !== 's2-quiz') return;
+  const all = panelEl().querySelectorAll('.opt'), fb = $('shapeFb');
+  all.forEach(b => { b.disabled = true; });
+  if (btn.dataset.shape === 'sphere') {
+    runtime.phase = 's2-correct';
+    state.step02.shapeCorrect = true;
+    btn.classList.add('correct');
+    visT.glow = 1;
+    fb.className = 'fb good'; fb.textContent = 'Chính xác!';
+    later(700, () => showKnowledgeOverlay(0));
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'fb bad'; fb.textContent = 'Chưa chính xác. Hãy quan sát lại quả địa cầu nhé!';
+    addPanelButton({ label: 'QUAN SÁT LẠI', onClick: beginObservation });
+  }
+}
+
+// ============================================================================
+// STEP 03 — CỰC VÀ XÍCH ĐẠO
+// ============================================================================
+function renderStep03Intro() {
+  runtime.phase = 's3-intro';
+  Object.assign(state.step03, { started: false, northPoleFound: false, southPoleFound: false, equatorFound: false });
+  setEarthMode('poles');
+  moveCameraToPreset('poleOverview', 800);
+  setHint('👆', 'Chạm vào các vị trí được yêu cầu để khám phá.');
+  showPanel({
+    kicker: 'NHIỆM VỤ',
+    body: 'Hãy tìm cực Bắc, cực Nam và đường Xích đạo trên quả địa cầu.',
+    foot: 'Chạm vào điểm • Chạm vào đường',
+    buttons: [{ label: 'BẮT ĐẦU', onClick: startStep03 }]
+  });
+}
+function startStep03() {
+  state.step03.started = true;
+  setAutoRotate(false);
+  playVoice(VOICE[1].intro);
+  beginPoleSearch('north');
+}
+function beginPoleSearch(which) {
+  const north = which === 'north';
+  runtime.phase = north ? 's3-north' : 's3-south';
+  if (north) { visT.poleN = 1; moveCameraToPreset('poleOverview', 800); }
+  else { visT.poleS = 1; moveCameraToPreset('southPoleView', 1000); }
+  const msg = north ? 'Hãy quan sát điểm ở đầu phía Bắc của trục quả địa cầu.' : 'Hãy tìm điểm ở đầu phía Nam của trục quả địa cầu.';
+  setHint('👆', 'Chạm vào điểm sáng để khám phá.');
+  showPanel({ compact: true, kicker: north ? 'TÌM ĐIỂM THỨ NHẤT' : 'TÌM ĐIỂM THỨ HAI', body: msg });
+}
+function handlePoleSelection(x, y) {
+  const which = runtime.phase === 's3-north' ? 'north' : 'south';
+  const other = which === 'north' ? 'south' : 'north';
+  if (poleHit(which, x, y)) { foundPole(which); return; }
+  if (poleHit(other, x, y) && poles[other].group.visible && vis[other === 'north' ? 'poleN' : 'poleS'] > 0.5) {
+    toast('Chưa đúng rồi. Hãy tìm điểm ở đầu phía ' + (which === 'north' ? 'Bắc' : 'Nam') + ' của trục nhé!', 'bad');
+    return;
+  }
+  toast('Chưa đúng. Hãy chạm vào điểm sáng ở đầu trục quả địa cầu.', 'info');
+}
+function foundPole(which) {
+  const north = which === 'north';
+  state.step03[north ? 'northPoleFound' : 'southPoleFound'] = true;
+  poles[which].found = true;
+  setLabel(north ? 'poleN' : 'poleS', true);
+  if (north) {
+    runtime.phase = 's3-north-done';
+    moveCameraToPreset('northPoleView', 900);
+    showPanel({ compact: true, kicker: 'ĐÃ TÌM THẤY', body: 'Em đã tìm thấy cực Bắc!', buttons: [{ label: 'KHÁM PHÁ TIẾP', cls: 'pulse', onClick: () => beginPoleSearch('south') }] });
+  } else {
+    runtime.phase = 's3-south-done';
+    moveCameraTo([0, -0.9, 4.6], [0, 0, 0], 1100);   // lùi nhẹ để thấy toàn bộ quả địa cầu
+    showPanel({ compact: true, kicker: 'ĐÃ TÌM THẤY', body: 'Em đã tìm thấy cực Nam! Hai cực được nối bằng trục của quả địa cầu.', buttons: [{ label: 'KHÁM PHÁ TIẾP', cls: 'pulse', onClick: beginEquatorSearch }] });
+  }
+}
+function beginEquatorSearch() {
+  runtime.phase = 's3-equator';
+  visT.equator = 1; visT.eqGlow = 0;
+  moveCameraToPreset('equatorView', 1000);
+  setHint('👆', 'Chạm vào đường em tìm được.');
+  showPanel({ compact: true, kicker: 'TÌM ĐƯỜNG VÒNG', body: 'Đường nào nằm ở giữa hai cực và vòng quanh quả địa cầu?' });
+}
+function handleEquatorSelection(x, y) {
+  if (!equatorHit(x, y)) { toast('Chưa đúng. Hãy tìm đường tròn nằm ở giữa hai cực.', 'info'); return; }
+  state.step03.equatorFound = true;
+  runtime.phase = 's3-equator-done';
+  visT.eqGlow = 1; flash.eq = 1;
+  setLabel('equator', true);
+  hidePanel();
+  later(1300, beginStep03Summary);
+}
+function beginStep03Summary() {
+  runtime.phase = 's3-summary';
+  moveCameraToPreset('poleOverview', 1100);
+  setHint('↻', 'Xoay quả địa cầu để quan sát vị trí các thành phần.');
+  showPanel({
+    compact: true, kicker: 'QUAN SÁT TỔNG HỢP',
+    body: 'Cực Bắc, cực Nam và đường Xích đạo đã hiện trên quả địa cầu. Em hãy xoay để quan sát nhé.',
+    buttons: [{ label: 'EM ĐÃ HIỂU', cls: 'pulse', onClick: () => showKnowledgeOverlay(1) }]
+  });
+}
+
+// ============================================================================
+// STEP 04 — HAI BÁN CẦU
+// ============================================================================
+const ZONE_HTML = '<span class="z-q">?</span><span class="z-t">Thả nhãn vào đây</span>';
+function resetZones() {
+  ['hemiN', 'hemiS'].forEach(k => {
+    const l = labels[k]; if (!l) return;
+    l.el.className = 'zone ' + (k === 'hemiN' ? 'north' : 'south');
+    l.el.innerHTML = ZONE_HTML;
+  });
+}
+function fillZone(key) {
+  const el = labels[key === 'north' ? 'hemiN' : 'hemiS'].el;
+  el.className = 'zone ' + key + ' done';
+  el.innerHTML = `<span class="z-l">${key === 'north' ? 'BÁN CẦU BẮC' : 'BÁN CẦU NAM'}</span>`;
+}
+const hideTray = () => { $('tray').classList.remove('show'); resetChips(); };
+function resetChips() {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('placed', 'selected', 'dragging', 'wrong-flash'));
+}
+
+function renderStep04Intro() {
+  runtime.phase = 's4-intro';
+  Object.assign(state.step04, { started: false, hemispheresObserved: false, northLabelCorrect: false, southLabelCorrect: false });
+  setEarthMode('hemi-intro');
+  moveCameraToPreset('hemisphereOverview', 900);
+  setHint('↻', 'Quan sát đường Xích đạo trên quả địa cầu.');
+  showPanel({
+    kicker: 'NHIỆM VỤ KHÁM PHÁ',
+    body: 'Quan sát đường Xích đạo và tìm hiểu xem đường này chia Trái Đất thành những phần nào.',
+    foot: 'Quan sát • Kéo thả nhãn',
+    buttons: [{ label: 'KHÁM PHÁ HAI BÁN CẦU', onClick: startStep04 }]
+  });
+}
+function startStep04() {
+  state.step04.started = true;
+  setAutoRotate(false);
+  playVoice(VOICE[2].intro);
+  runtime.phase = 's4-observe';
+  flash.eq = 1; visT.eqGlow = 1;
+  visT.ovN = 1;
+  later(600, () => { visT.ovS = 1; });
+  runtime.gentleSpin = !REDUCED;
+  setHint('👀', 'Quan sát hai phần nằm ở phía trên và phía dưới đường Xích đạo.');
+  showPanel({ compact: true, kicker: 'QUAN SÁT', body: 'Quan sát hai phần nằm ở phía trên và phía dưới đường Xích đạo.' });
+  later(1400, () => {
+    state.step04.hemispheresObserved = true;
+    addPanelButton({ label: 'THỬ XÁC ĐỊNH', cls: 'pulse', onClick: startHemisphereActivity });
+  });
+}
+function startHemisphereActivity() {
+  runtime.phase = 's4-drag';
+  runtime.gentleSpin = false;
+  hidePanel();
+  showPanel({
+    kicker: 'KÉO THẢ NHÃN', body: 'Kéo các nhãn vào đúng vị trí trên quả địa cầu.',
+    extra: '<div id="trayHost"></div><div class="drag-fb" id="dragFb" role="status"></div>',
+    foot: 'Đã đặt 0/2 nhãn', footLabel: 'TRẠNG THÁI'
+  });
+  $('trayHost').appendChild($('tray'));  resetChips(); resetZones();
+  setLabel('hemiN', true); setLabel('hemiS', true);
+  $('tray').classList.add('show');
+  setHint('✋', 'Kéo nhãn vào đúng bán cầu.');
+}
+
+function setDragStatus(text) { const s = panelEl().querySelector('.p-foot span'); if (s) s.textContent = text; }
+// Phản hồi kéo thả hiển thị ngay trong panel phải (dự phòng: toast nhỏ)
+function dragMsg(msg, kind) {
+  const fb = $('dragFb');
+  if (fb && fb.isConnected) { fb.className = 'drag-fb ' + kind; fb.textContent = msg; }
+  else toast(msg, kind === 'good' ? 'ok' : kind === 'bad' ? 'bad' : 'info', 3000);
+}
+function makeGhost(chip) {
+  const g = document.createElement('div');
+  g.className = 'ghost-chip'; g.textContent = chip.textContent;
+  document.body.appendChild(g);
+  return g;
+}
+function setHover(t) {
+  runtime.hover = t;
+  labels.hemiN.el.classList.toggle('over', t === 'north' && !labels.hemiN.el.classList.contains('done'));
+  labels.hemiS.el.classList.toggle('over', t === 'south' && !labels.hemiS.el.classList.contains('done'));
+}
+function refreshSelection() {
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('selected', c.dataset.key === runtime.selectedLabel));
+  const sel = !!runtime.selectedLabel && runtime.phase === 's4-drag';
+  ['hemiN', 'hemiS'].forEach(k => labels[k].el.classList.toggle('ready', sel && !labels[k].el.classList.contains('done')));
+  if (runtime.phase === 's4-drag') setHint('✋', sel ? 'Hãy chạm vào vị trí phù hợp trên quả địa cầu.' : 'Kéo nhãn vào đúng bán cầu.');
+}
+function cancelDrag() {
+  const d = runtime.drag;
+  if (d) { if (d.ghost) d.ghost.remove(); d.chip.classList.remove('dragging'); runtime.drag = null; }
+  document.querySelectorAll('.ghost-chip').forEach(g => g.remove());
+  setHover(null);
+  if (labels.hemiN) refreshSelection();
+}
+function bindChips() {
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('pointerdown', e => {
+      if (runtime.phase !== 's4-drag' || chip.classList.contains('placed')) return;
+      e.preventDefault();
+      try { chip.setPointerCapture(e.pointerId); } catch (err) { /* bỏ qua */ }
+      runtime.drag = { key: chip.dataset.key, chip, id: e.pointerId, sx: e.clientX, sy: e.clientY, moved: false, ghost: null };
+    });
+    chip.addEventListener('pointermove', e => {
+      const d = runtime.drag;
+      if (!d || d.id !== e.pointerId) return;
+      if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 6) { d.moved = true; d.ghost = makeGhost(chip); chip.classList.add('dragging'); }
+      if (d.moved) {
+        d.ghost.style.transform = `translate(${e.clientX - 50}px,${e.clientY - 60}px)`;
+        setHover(resolveTarget(e.clientX, e.clientY));
+      }
+    });
+    chip.addEventListener('pointerup', e => {
+      const d = runtime.drag;
+      if (!d || d.id !== e.pointerId) return;
+      runtime.drag = null;
+      if (d.ghost) d.ghost.remove();
+      chip.classList.remove('dragging');
+      setHover(null);
+      if (d.moved) handleHemisphereDrop(d.key, e.clientX, e.clientY);
+      else { runtime.selectedLabel = runtime.selectedLabel === d.key ? null : d.key; refreshSelection(); }
+    });
+    chip.addEventListener('pointercancel', cancelDrag);
+  });
+  ['zoneN', 'zoneS'].forEach(id => {
+    const el = $(id);
+    el.addEventListener('click', () => {
+      if (runtime.phase === 's4-drag' && runtime.selectedLabel && !el.classList.contains('done')) {
+        handleHemisphereDrop(runtime.selectedLabel, 0, 0, el.dataset.hemi);
+      }
+    });
+  });
+}
+
+function handleHemisphereDrop(labelKey, x, y, forcedTarget) {
+  if (runtime.phase !== 's4-drag') return false;
+  const chip = document.querySelector(`.chip[data-key="${labelKey}"]`);
+  if (!chip || chip.classList.contains('placed')) return false;
+  const target = forcedTarget || resolveTarget(x, y);
+  if (!target) { dragMsg('Hãy thả nhãn lên quả địa cầu nhé.', 'info'); return false; }
+  if (target !== labelKey) {
+    chip.classList.add('wrong-flash');
+    setTimeout(() => chip.classList.remove('wrong-flash'), 450);
+    runtime.selectedLabel = null; refreshSelection();
+    dragMsg('Chưa chính xác. Hãy quan sát lại đường Xích đạo và thử lại nhé!', 'bad');
+    return false;                       // nhãn trở về khay, cho phép thử lại không giới hạn
+  }
+  state.step04[labelKey === 'north' ? 'northLabelCorrect' : 'southLabelCorrect'] = true;
+  chip.classList.add('placed');
+  runtime.selectedLabel = null;
+  fillZone(labelKey);
+  flash[labelKey === 'north' ? 'N' : 'S'] = 1;
+  refreshSelection();
+  setDragStatus('Đã đặt ' + (+state.step04.northLabelCorrect + +state.step04.southLabelCorrect) + '/2 nhãn');
+  dragMsg('Chính xác! Em đã xác định được bán cầu ' + (labelKey === 'north' ? 'Bắc' : 'Nam') + '.', 'good');
+  checkHemisphereAnswers();
+  return true;
+}
+function checkHemisphereAnswers() {
+  const s = state.step04;
+  if (!(s.northLabelCorrect && s.southLabelCorrect)) return;
+  runtime.phase = 's4-done';
+  $('tray').classList.remove('show');
+  flash.N = 1; later(800, () => { flash.S = 1; });
+  dragMsg('Em đã xác định đúng cả hai bán cầu!', 'good'); setDragStatus('Hoàn thành 2/2 nhãn ✓');
+  setHint('✓', 'Em đã xác định được hai bán cầu.');
+  later(2300, () => showKnowledgeOverlay(2));
+}
+
+// ============================================================================
+// HIỂN THỊ KIẾN THỨC & TỔNG KẾT
+// ============================================================================
+function showKnowledgeOverlay(i, { review = false } = {}) {
+  const st = state[STEP_KEYS[i]];
+  if (!review) st.knowledgeViewed = true;
+  runtime.phase = review ? 'review-know' : 'knowledge';
+  hidePanel(); $('tray').classList.remove('show');
+  openConclusion(i, review); playVoice(VOICE[i].end); return;
+  $('knowList').innerHTML = KNOWLEDGE[i].map(t => `<li>${esc(t)}</li>`).join('');
+  const btn = $('knowBtn');
+  btn.textContent = review ? 'ĐÓNG' : (i === 2 ? 'HOÀN THÀNH' : 'TIẾP TỤC');
+  btn.onclick = () => onKnowledgeContinue(i, review);
+  $('knowOverlay').classList.add('show'); $('knowOverlay').setAttribute('aria-hidden', 'false');
+  playVoice(VOICE[i].end);              // voice kết luận chỉ phát khi overlay xuất hiện
+  btn.focus({ preventScroll: true });
+}
+// Overlay kết luận dùng chung cho Step 02 và Step 03 (nội dung + hình minh họa theo từng step); voice do showKnowledgeOverlay phát
+const CONCLUSION_POLES = {
+  p: '<b>Cực Bắc</b> và <b>cực Nam</b> là hai điểm ở hai đầu trục của quả địa cầu.',
+  svg: '<svg class="step02-conclusion-illustration step03-conclusion-poles" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="s3P" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#6fd0ff"/><stop offset="1" stop-color="#1459b8"/></radialGradient><clipPath id="s3Pc"><circle cx="50" cy="50" r="32"/></clipPath></defs><line x1="50" y1="6" x2="50" y2="94" stroke="#1d3b4a" stroke-width="2" stroke-linecap="round"/><circle cx="50" cy="50" r="32" fill="url(#s3P)"/><g clip-path="url(#s3Pc)"><path d="M28 36q9-9 20-4t5 13q-9 6-17 2t-8-11zM54 58q11-4 18 5t-3 16q-12 0-16-9t1-12z" fill="#58b85a"/><ellipse cx="38" cy="66" rx="11" ry="4" fill="#fff" opacity=".85"/><ellipse cx="64" cy="38" rx="10" ry="3.5" fill="#fff" opacity=".85"/></g><ellipse cx="38" cy="32" rx="10" ry="6" fill="#fff" opacity=".22" transform="rotate(-30 38 32)"/><line x1="50" y1="6" x2="50" y2="18" stroke="#1d3b4a" stroke-width="2"/><circle class="pole-glow pole-n" cx="50" cy="18" r="9" fill="#46f08a" fill-opacity=".45"/><circle class="pole-dot pole-n" cx="50" cy="18" r="4.6" fill="#22d36b" stroke="#fff" stroke-width="1.5"/><circle class="pole-glow pole-s" cx="50" cy="82" r="9" fill="#ff8a3d" fill-opacity=".45"/><circle class="pole-dot pole-s" cx="50" cy="82" r="4.6" fill="#ff6a1f" stroke="#fff" stroke-width="1.5"/></svg>'
+};
+const CONCLUSION_EQUATOR = {
+  p: '<b>Đường Xích đạo</b> là đường tưởng tượng vòng quanh Trái Đất, nằm ở giữa hai cực.',
+  svg: '<svg class="step02-conclusion-illustration step03-conclusion-equator" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="s3E" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#6fd0ff"/><stop offset="1" stop-color="#1459b8"/></radialGradient><clipPath id="s3Ec"><circle cx="50" cy="50" r="32"/></clipPath></defs><circle cx="50" cy="50" r="32" fill="url(#s3E)"/><g clip-path="url(#s3Ec)"><path d="M28 30q9-9 20-4t5 13q-9 6-17 2t-8-11zM54 62q11-4 18 5t-3 16q-12 0-16-9t1-12z" fill="#58b85a"/><ellipse cx="36" cy="70" rx="11" ry="4" fill="#fff" opacity=".85"/><ellipse cx="66" cy="32" rx="10" ry="3.5" fill="#fff" opacity=".85"/></g><ellipse cx="38" cy="30" rx="10" ry="6" fill="#fff" opacity=".22" transform="rotate(-30 38 30)"/><g class="equator-draw"><path d="M18 50A32 9 0 0 1 82 50" fill="none" stroke="#ffd37a" stroke-width="2" stroke-dasharray="3 3" opacity=".6"/><path d="M18 50A32 9 0 0 0 82 50" fill="none" stroke="#ffb02e" stroke-width="8" stroke-linecap="round" opacity=".35"/><path d="M18 50A32 9 0 0 0 82 50" fill="none" stroke="#ffc94a" stroke-width="3.4" stroke-linecap="round"/></g></svg>'
+};
+// ----- Step 04: hai bán cầu (đường Xích đạo theo mặt phẳng giữa hai cực; Bắc phía trên, Nam phía dưới) -----
+const HEMI_N_D = 'M18 50A32 32 0 0 1 82 50A32 9 0 0 1 18 50Z';
+const HEMI_S_D = 'M18 50A32 32 0 0 0 82 50A32 9 0 0 1 18 50Z';
+const CONCLUSION_EQUATOR_HALF = {
+  p: '<b>Đường Xích đạo</b> chia Trái Đất thành hai nửa bằng nhau.',
+  svg: CONCLUSION_EQUATOR.svg.replace('step03-conclusion-equator', 'step04-conclusion-equator')
+    .replace('<g class="equator-draw">', `<path d="${HEMI_N_D}" fill="#5db8ff" fill-opacity=".2"/><path d="${HEMI_S_D}" fill="#ffa24d" fill-opacity=".22"/><g class="equator-draw">`)
+};
+const HEMI_SVG = '<svg class="step02-conclusion-illustration step04-conclusion-hemi" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="s4H" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#6fd0ff"/><stop offset="1" stop-color="#1459b8"/></radialGradient><clipPath id="s4Hc"><circle cx="50" cy="50" r="32"/></clipPath></defs><circle cx="50" cy="50" r="32" fill="url(#s4H)"/><g clip-path="url(#s4Hc)"><path d="M28 30q9-9 20-4t5 13q-9 6-17 2t-8-11zM54 62q11-4 18 5t-3 16q-12 0-16-9t1-12z" fill="#58b85a"/><ellipse cx="36" cy="70" rx="11" ry="4" fill="#fff" opacity=".85"/><ellipse cx="66" cy="32" rx="10" ry="3.5" fill="#fff" opacity=".85"/></g>'
+  + `<path class="hemi-n" d="${HEMI_N_D}" fill="#5db8ff" fill-opacity=".5"/><path class="hemi-s" d="${HEMI_S_D}" fill="#ffa24d" fill-opacity=".55"/>`
+  + '<path d="M18 50A32 9 0 0 1 82 50" fill="none" stroke="#ffd37a" stroke-width="1.6" stroke-dasharray="3 3" opacity=".7"/><path d="M18 50A32 9 0 0 0 82 50" fill="none" stroke="#ffc94a" stroke-width="3.2" stroke-linecap="round"/>'
+  + '<g class="hl-n"><rect x="34" y="26" width="32" height="15" rx="7.5" fill="#fff"/><text x="50" y="37" text-anchor="middle" font-size="10" font-weight="700" fill="#1565c0" font-family="Roboto,sans-serif">Bắc</text></g>'
+  + '<g class="hl-s"><rect x="34" y="64" width="32" height="15" rx="7.5" fill="#fff"/><text x="50" y="75" text-anchor="middle" font-size="10" font-weight="700" fill="#c25e00" font-family="Roboto,sans-serif">Nam</text></g></svg>';
+const CONCLUSION_HEMI = { p: 'Nửa phía Bắc gọi là <b>bán cầu Bắc</b>. Nửa phía Nam gọi là <b>bán cầu Nam</b>.', svg: HEMI_SVG };
+
+// ----- Dữ liệu từng step cho component kết luận dùng chung -----
+let conclusionBase = null;
+function getConclusionBase() {
+  if (!conclusionBase) conclusionBase = [...$('s2Overlay').querySelectorAll('.step02-conclusion-item')].map(it => ({
+    p: it.querySelector('p').innerHTML, svg: it.querySelector('.step02-conclusion-illustration').outerHTML
+  }));
+  return conclusionBase;
+}
+function spawnConfetti(cf, stars) {
+  const colors = ['#ff8a2b', '#12a39a', '#ff6f91', '#ffc13d', '#4aa8ff', '#7bd45a'];
+  cf.innerHTML = '';
+  for (let k = 0; k < 18 + stars; k++) {          // confetti thưa, nằm ở rìa; chạy một lần
+    const el = document.createElement('i');
+    const side = k % 3, isStar = k >= 18;
+    const x = side === 0 ? 1 + Math.random() * 6 : side === 1 ? 93 + Math.random() * 6 : Math.random() * 100;
+    const y = side === 2 ? (k % 2 ? 1 + Math.random() * 5 : 94 + Math.random() * 5) : 4 + Math.random() * 90;
+    if (isStar) el.className = 'star';
+    el.style.cssText = `left:${x}%;top:${y}%;${isStar ? '' : `width:${6 + Math.random() * 7}px;height:${10 + Math.random() * 9}px;background:${colors[k % colors.length]};`}--r:${Math.floor(Math.random() * 180)}deg;animation-delay:${(Math.random() * 0.35).toFixed(2)}s`;
+    cf.appendChild(el);
+  }
+}
+function openConclusion(i, review) {
+  const ov = $('s2Overlay'), items = ov.querySelectorAll('.step02-conclusion-item');
+  const data = i === 1 ? [CONCLUSION_POLES, CONCLUSION_EQUATOR] : i === 2 ? [CONCLUSION_EQUATOR_HALF, CONCLUSION_HEMI] : getConclusionBase();
+  items.forEach((it, k) => {
+    it.querySelector('p').innerHTML = data[k].p;
+    it.querySelector('.step02-conclusion-illustration').outerHTML = data[k].svg;
+  });
+  ov.classList.toggle('step03-conclusion', i === 1);
+  ov.classList.toggle('step04-conclusion', i === 2);
+  ov.classList.toggle('geo', i !== 0);
+  const btn = $('s2NextBtn');
+  btn.textContent = review ? 'ĐÓNG' : (i === 2 ? 'HOÀN THÀNH →' : 'TIẾP TỤC →');
+  btn.onclick = () => onKnowledgeContinue(i, review);
+  spawnConfetti($('s2Confetti'), i === 0 ? 0 : 4);
+  ov.classList.add('show'); ov.setAttribute('aria-hidden', 'false'); ov.scrollTop = 0;
+  btn.focus({ preventScroll: true });
+}
+
+// ----- Tổng kết Module 1: ba thẻ ghi nhớ, tái dùng hình minh họa của các step -----
+const CHECK_SVG = '<svg class="step02-conclusion-check" viewBox="0 0 56 56" aria-hidden="true"><defs><radialGradient id="ckS" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#9be86a"/><stop offset="1" stop-color="#2f9e3a"/></radialGradient></defs><ellipse cx="28" cy="52" rx="17" ry="3.5" fill="#0b3b2c" opacity=".22"/><circle cx="28" cy="26" r="24" fill="url(#ckS)"/><ellipse cx="20" cy="14" rx="11" ry="6" fill="#fff" opacity=".35" transform="rotate(-25 20 14)"/><path d="M16 27l8 8 16-17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function suffixIds(s, sfx) {              // tránh trùng id giữa các SVG cùng tài liệu
+  [...s.matchAll(/ id="([^"]+)"/g)].map(m => m[1]).forEach(id => {
+    s = s.split(`id="${id}"`).join(`id="${id}${sfx}"`).split(`#${id})`).join(`#${id}${sfx})`);
+  });
+  return s;
+}
+function stripAnimClasses(s) { return s.replace(/ class="equator-draw"/g, '').replace(/class="(pole-[ns]|pole-glow pole-[ns]|pole-dot pole-[ns])"/g, ''); }
+let summaryBuilt = false;
+function buildSummary() {
+  if (summaryBuilt) return;
+  summaryBuilt = true;
+  const eq = CONCLUSION_EQUATOR.svg.match(/<g class="equator-draw">[\s\S]*?<\/g>/)[0];
+  const polesEq = CONCLUSION_POLES.svg.replace('<line x1="50" y1="6" x2="50" y2="18"', eq + '<line x1="50" y1="6" x2="50" y2="18"');
+  const cards = [
+    { name: 'HÌNH DẠNG TRÁI ĐẤT', text: 'Trái Đất có dạng hình cầu.', svg: getConclusionBase()[0].svg },
+    { name: 'CỰC VÀ XÍCH ĐẠO', text: 'Trên quả địa cầu có cực Bắc, cực Nam và đường Xích đạo.', svg: polesEq },
+    { name: 'HAI BÁN CẦU', text: 'Đường Xích đạo chia Trái Đất thành bán cầu Bắc và bán cầu Nam.', svg: HEMI_SVG }
+  ];
+  $('sumItems').innerHTML = cards.map((c, k) =>
+    `<div class="step02-conclusion-item summary-item">${suffixIds(CHECK_SVG, 'S' + k)}<div class="summary-text"><span class="summary-name">${c.name}</span><p>${c.text}</p></div>${suffixIds(stripAnimClasses(c.svg), 'S' + k).replace(/class="step02-conclusion-illustration[^"]*"/, 'class="step02-conclusion-illustration"')}</div>`).join('');
+  // phi hành gia giơ cờ chúc mừng (cùng phong cách nhân vật các step)
+  let a = $('s2Overlay').querySelector('.step02-conclusion-astro').outerHTML;
+  a = a.replace(/<ellipse cx="102" cy="88"[^>]*>(?:<\/ellipse>)?/, '<ellipse cx="108" cy="64" rx="11" ry="18" transform="rotate(-20 108 64)" fill="url(#s2Suit)" stroke="#c4cde0" stroke-width="2"/>')
+    .replace(/<circle cx="108" cy="72" r="9"[^>]*>(?:<\/circle>)?/, '<circle cx="113" cy="44" r="9" fill="#f6f8fc" stroke="#c4cde0" stroke-width="2"/>')
+    .replace('viewBox="0 0 130 150"', 'viewBox="0 -8 156 158"')
+    .replace('</svg>', '<line x1="116" y1="46" x2="116" y2="6" stroke="#c98a3d" stroke-width="3" stroke-linecap="round"/><polygon points="116,6 146,15 116,25" fill="#ff6f91"/><polygon points="10,18 13,26 21,26 15,31 17,39 10,34 3,39 5,31 -1,26 7,26" fill="#ffd966"/><polygon points="30,0 32,5 37,5 33,8 35,13 30,10 25,13 27,8 23,5 28,5" fill="#ffd966"/></svg>');
+  $('sumAstro').innerHTML = suffixIds(a, 'C');
+}function onKnowledgeContinue(i, review) {
+  $('knowOverlay').classList.remove('show'); $('knowOverlay').setAttribute('aria-hidden', 'true');
+  $('s2Overlay').classList.remove('show'); $('s2Overlay').setAttribute('aria-hidden', 'true');
+  stopVoice();
+  if (review) { renderReview(i); return; }
+  completeStep(i);
+  if (i < 2) enterStep(i + 1);
+  else showModuleSummary();
+}
+function showModuleSummary() {
+  runtime.phase = 'summary';
+  hidePanel(); stopVoice(); state.currentVoice = null;
+  buildSummary();
+  spawnConfetti($('sumConfetti'), 4);
+  $('sumMain').style.display = state.moduleCompleted ? 'none' : '';
+  $('sumDone').style.display = state.moduleCompleted ? '' : 'none';
+  $('sumOverlay').classList.add('show'); $('sumOverlay').setAttribute('aria-hidden', 'false');
+}
+function completeModule() {
+  const all = STEP_KEYS.every(k => state[k].completed);
+  if (!all) {
+    $('sumOverlay').classList.remove('show');
+    renderReview(state.currentStep);
+    toast('Em hãy hoàn thành cả 3 bước (Step 02, 03, 04) để hoàn thành bài nhé.', 'info', 3600);
+    return;
+  }
+  state.moduleCompleted = true;
+  $('sumMain').style.display = 'none';
+  $('sumDone').style.display = '';
+  notifyParent('module', { type: 'LESSON_MODULE_COMPLETE', module: CONFIG.moduleId, activities: [2, 3, 4] });
+}
+function closeSummary() {
+  $('sumOverlay').classList.remove('show'); $('sumOverlay').setAttribute('aria-hidden', 'true');
+  renderReview(state.currentStep);
+}
+
+// ============================================================================
+// HIỆU ỨNG XUẤT HIỆN & VÒNG LẶP
+// ============================================================================
+function startAppear() {
+  runtime.appear = { t0: performance.now(), dur: REDUCED ? 1 : 1000 };
+  earthGroup.scale.setScalar(REDUCED ? 1 : 0.35);
+}
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, clock.getDelta());
+  const now = performance.now();
+  if (runtime.appear) {
+    const t = Math.min(1, (now - runtime.appear.t0) / runtime.appear.dur);
+    earthGroup.scale.setScalar(0.35 + 0.65 * easeOut(t)); atmosphere.scale.copy(earthGroup.scale);
+    if (t >= 1) runtime.appear = null;
+  }
+  if (runtime.introSpin) earthGroup.rotation.y += dt * 0.28;
+  else if (runtime.gentleSpin) earthGroup.rotation.y += dt * 0.16;
+  updateCameraTween(now);
+  controls.update();
+  updateEffects(dt, now / 1000);
+  updateLabels();
+  renderer.render(scene, camera);
+}
+
+// ============================================================================
+// ASSET (GLB / texture) + KHỞI ĐỘNG
+// ============================================================================
+function withTimeout(p, ms) {
+  return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+}
+async function loadAssets() {
+  const errors = [];
+  if (ASSETS.earthTexture) {
+    try {
+      const tex = await withTimeout(new THREE.TextureLoader().setCrossOrigin('anonymous').loadAsync(ASSETS.earthTexture), 12000);
+      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+      earthMat.map = tex; earthMat.needsUpdate = true;
+    } catch (e) { errors.push('texture'); }
+  }
+  if (ASSETS.earthModel) {
+    try {
+      const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+      const gltf = await withTimeout(new GLTFLoader().setCrossOrigin('anonymous').loadAsync(ASSETS.earthModel), 15000);
+      const m = gltf.scene;
+      const box = new THREE.Box3().setFromObject(m);
+      const sph = { center: box.getCenter(new THREE.Vector3()), radius: box.getSize(new THREE.Vector3()).length() / Math.sqrt(3) / 2 };
+      m.position.sub(sph.center);
+      const wrap = new THREE.Group(); wrap.add(m); wrap.scale.setScalar(1 / sph.radius);
+      if (earthModel) earthGroup.remove(earthModel);
+      earthGroup.add(wrap); earthModel = wrap; earthSurface.visible = false;
+      try { let mp = null; m.traverse(o => { if (!mp && o.isMesh && o.material && o.material.map) mp = o.material.map; }); if (mp && mp.image) drawIntroEarth(mp.image); } catch (e) { /* bỏ qua: chỉ trang trí */ }
+    } catch (e) { errors.push('model'); }
+  }
+  return errors;
+}
+
+// Nền intro: vũ trụ + Trái Đất chìm phía sau tên bài (Trái Đất lấy từ texture của chính model đã nhúng)
+function setupIntroBackground() {
+  try {
+    const l = $('introLoader');
+    l.style.backgroundImage = `linear-gradient(180deg,rgba(2,13,13,.2),rgba(2,13,13,.5)), url(${makeSpaceBackground()}), ${SPACE_FALLBACK}`;
+    l.style.backgroundSize = 'cover'; l.style.backgroundPosition = 'center';
+  } catch (e) { /* giữ nền gradient mặc định */ }
+}
+function drawIntroEarth(img) {
+  const S = 760, c = $('introEarth'), g = c.getContext('2d');
+  c.width = c.height = S;
+  const TW = 2048, TH = 1024, tc = document.createElement('canvas');
+  tc.width = TW; tc.height = TH;
+  const tg = tc.getContext('2d');
+  tg.drawImage(img, 0, 0, TW, TH);
+  const tex = tg.getImageData(0, 0, TW, TH).data;
+  const out = g.createImageData(S, S), R = S / 2 * 0.84, cx = S / 2, cy = S / 2;
+  const lon0 = 105 * Math.PI / 180, tilt = 0.25;           // hướng Đông Nam Á ra phía trước, trục hơi nghiêng
+  const L = [-0.55, 0.5, 0.67], ln = Math.hypot(...L);
+  const ct = Math.cos(tilt), st = Math.sin(tilt);
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const dx = (x - cx) / R, dy = (cy - y) / R, r2 = dx * dx + dy * dy;
+    if (r2 > 1) continue;
+    const dz = Math.sqrt(1 - r2);
+    const ty = dy * ct - dz * st, tz = dy * st + dz * ct;   // xoay trục nghiêng
+    const lat = Math.asin(Math.max(-1, Math.min(1, ty))), lon = lon0 + Math.atan2(dx, tz);
+    let u = (lon + Math.PI) / (2 * Math.PI); u -= Math.floor(u);
+    const v = 0.5 - lat / Math.PI;
+    const px = Math.min(TW - 1, Math.floor(u * TW)), py = Math.min(TH - 1, Math.max(0, Math.floor(v * TH)));
+    const ti = (py * TW + px) * 4;
+    const shade = Math.max(0.12, (dx * L[0] + dy * L[1] + dz * L[2]) / ln) * 1.15 + 0.06;
+    const rim = 1 + 0.5 * Math.pow(1 - dz, 3);
+    const i = (y * S + x) * 4;
+    out.data[i] = Math.min(255, tex[ti] * shade * (1 + 0.1 * (rim - 1)));
+    out.data[i + 1] = Math.min(255, tex[ti + 1] * shade * rim * 0.98);
+    out.data[i + 2] = Math.min(255, tex[ti + 2] * shade * rim + 14 * (1 - dz));
+    out.data[i + 3] = Math.min(255, (1 - Math.sqrt(r2)) * R * 1.2 * 255 / R * 6);
+  }
+  g.putImageData(out, 0, 0);
+  const gl = g.createRadialGradient(cx, cy, R * 0.97, cx, cy, R * 1.14);
+  gl.addColorStop(0, 'rgba(110,190,255,.6)'); gl.addColorStop(1, 'rgba(110,190,255,0)');
+  g.globalCompositeOperation = 'lighter'; g.fillStyle = gl;
+  g.beginPath(); g.arc(cx, cy, R * 1.14, 0, Math.PI * 2); g.fill();
+  c.classList.add('show');
+}
+
+async function boot() {
+  const status = $('introStatus'), bar = $('introProgressBar'), loader = $('introLoader'), retry = $('btnRetry');
+  const setStatus = (html, cls) => {
+    status.innerHTML = '<span class="ready-dot"></span>' + html;
+    status.classList.toggle('is-ready', cls === 'ready'); status.classList.toggle('is-error', cls === 'error');
+  };
+  retry.classList.remove('show');
+  setupIntroBackground();
+  try {
+    if (!THREE) {
+      setStatus('Đang tải thư viện 3D…'); bar.style.width = '15%';
+      await initThree();
+      bar.style.width = '45%';
+      createEarth();
+      bindChips();
+      updateStepNavigation();
+      $('btnOverview').addEventListener('click', resetCamera);
+      $('btnAutorotate').addEventListener('click', () => setAutoRotate(!state.autoRotate));
+      $('btnNarration').addEventListener('click', toggleNarration);
+      $('btnPrevStep').addEventListener('click', () => enterStep(state.currentStep - 1));
+      $('btnNextStep').addEventListener('click', () => enterStep(state.currentStep + 1));
+      $('stepsBar').addEventListener('click', ev => { const b = ev.target.closest('.step'); if (b) enterStep(Number(b.dataset.step)); });
+      $('btnCompleteModule').addEventListener('click', completeModule);
+      $('btnCloseSummary').addEventListener('click', closeSummary);
+      $('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
+        else document.exitFullscreen?.().catch(() => {});
+      });
+      document.addEventListener('fullscreenchange', () => setTimeout(onResize, 60));
+      $('btnExplore').addEventListener('click', enterLesson, { once: true });
+      animate();
+    }
+    setStatus('Đang tải mô hình Trái Đất…'); bar.style.width = '70%';
+    const errs = await loadAssets();
+    bar.style.width = '100%';
+    runtime.ready = true;
+    if (errs.length) {
+      setStatus('Không tải được ' + (errs.includes('model') ? 'mô hình' : 'texture') + ' Trái Đất – đang dùng mô hình dự phòng', 'error');
+      retry.textContent = '↻ Thử tải lại'; retry.onclick = () => { boot(); }; retry.classList.add('show');
+    } else setStatus('Đã sẵn sàng!', 'ready');
+    loader.classList.add('ready');
+  } catch (e) {
+    console.error(e);
+    bar.style.width = '100%';
+    setStatus('Không tải được thư viện 3D. Hãy kiểm tra kết nối mạng.', 'error');
+    retry.textContent = '↻ Thử lại'; retry.onclick = () => location.reload(); retry.classList.add('show');
+  }
+}
+function enterLesson() {
+  const loader = $('introLoader');
+  loader.style.pointerEvents = 'none';
+  loader.style.transition = 'opacity .4s ease';
+  loader.style.opacity = '0';
+  setTimeout(() => { loader.style.display = 'none'; }, 420);
+  onResize();
+  enterStep(0);                         // chưa phát voice trước thao tác "Bắt đầu nhiệm vụ"
+}
+
+// API tích hợp
+window.YooBookModule = {
+  moduleId: CONFIG.moduleId,
+  config: CONFIG,
+  setFreeNavigation,
+  goToStep: (i) => enterStep(i),
+  showKnowledge: (i, review = true) => showKnowledgeOverlay(i, { review }),
+  getState: () => JSON.parse(JSON.stringify(state))
+};
+
+boot();
+</script>
+</body>
+</html>
