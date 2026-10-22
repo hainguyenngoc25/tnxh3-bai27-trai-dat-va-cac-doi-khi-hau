@@ -1,0 +1,1 @@
+# tnxh3-bai27-trai-dat-va-cac-doi-khi-hau
